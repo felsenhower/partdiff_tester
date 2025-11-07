@@ -76,3 +76,7 @@ Set working directory
 ### TODO: `threads`
 
 Support more than one thread
+
+### TODO: 'max_num_tests`
+
+Only do `n` tests.
