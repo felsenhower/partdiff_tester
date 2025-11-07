@@ -5,10 +5,14 @@ import util
 
 
 def test_partdiff_parametrized(pytestconfig, reference_output_data, test_id):
-    partdiff_params, reference_output = reference_output_data[test_id]
     partdiff_executable = pytestconfig.getoption("executable")
     strictness = pytestconfig.getoption("strictness")
+    use_valgrind = pytestconfig.getoption("valgrind")
+    partdiff_params, reference_output = reference_output_data[test_id]
+
     command_line = partdiff_executable + list(partdiff_params)
+    if use_valgrind:
+        command_line = ["valgrind", "--leak-check=full"] + command_line
     actual_output = subprocess.check_output(command_line).decode("utf-8")
     re_output_mask = util.OUTPUT_MASKS[strictness]
     m_expected = re_output_mask.match(reference_output)

@@ -21,6 +21,11 @@ def pytest_addoption(parser):
         default=0,
         choices=range(len(util.OUTPUT_MASKS)),
     )
+    parser.addoption(
+        "--valgrind",
+        help="Use valgrind to execute the given executable",
+        action="store_true",
+    )
 
 
 @pytest.fixture
