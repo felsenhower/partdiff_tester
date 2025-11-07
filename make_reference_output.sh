@@ -26,7 +26,7 @@ fi
 PARTDIFF_EXEC=( "$@" )
 
 TIMEOUT_DURATION=2
-OUTPUT_DIRECTORY='./reference_data'
+OUTPUT_DIRECTORY='./reference_output'
 
 PARAM_NUM_RANGE=(1)
 PARAM_METHOD_RANGE=(1 2)
