@@ -61,7 +61,27 @@ RE_OUTPUT_MASK_STRICT_1 = re.compile(
     rf"""
     ^
     .*
-    ([0-9\.e-]+)
+    ([0-9\.e+-]+)
+    \s*
+    Matrix:
+    ({RE_MATRIX.pattern})
+    .*
+    $
+""",
+    re.VERBOSE | re.DOTALL,
+)
+
+RE_OUTPUT_MASK_STRICT_2 = re.compile(
+    rf"""
+    ^
+    (.+): \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time (not captured!)
+    (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage  (not captured!)
+    (.+): \s+ (.+)             \s*\n # Calculation method
+    (.+): \s+ ([0-9]+)         \s*\n # Interlines
+    (.+): \s+ (.+)             \s*\n # Pertubation function
+    (.+): \s+ (.+)             \s*\n # Termination
+    (.+): \s+ ([0-9]+)         \s*\n # Number of iterations       
+    (.+): \s+ ([0-9\.e+-]+)    \s*\n # Residuum
     \s*
     Matrix:
     ({RE_MATRIX.pattern})
@@ -74,6 +94,7 @@ RE_OUTPUT_MASK_STRICT_1 = re.compile(
 OUTPUT_MASKS = [
     RE_OUTPUT_MASK_STRICT_0,
     RE_OUTPUT_MASK_STRICT_1,
+    RE_OUTPUT_MASK_STRICT_2,
 ]
 
 REFERENCE_OUTPUT_PATH = Path.cwd() / ".." / "reference_output"
