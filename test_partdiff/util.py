@@ -63,7 +63,7 @@ RE_OUTPUT_MASK_STRICT_1 = re.compile(
     .*
     ([0-9\.e+-]+)
     \s*
-    Matrix:
+    .+:
     ({RE_MATRIX.pattern})
     .*
     $
@@ -74,14 +74,34 @@ RE_OUTPUT_MASK_STRICT_1 = re.compile(
 RE_OUTPUT_MASK_STRICT_2 = re.compile(
     rf"""
     ^
-    (.+): \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time (not captured!)
-    (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage  (not captured!)
-    (.+): \s+ (.+)             \s*\n # Calculation method
+    (.+): \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
+    (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    (.+): \s+ .+               \s*\n # Calculation method
     (.+): \s+ ([0-9]+)         \s*\n # Interlines
-    (.+): \s+ (.+)             \s*\n # Pertubation function
-    (.+): \s+ (.+)             \s*\n # Termination
+    (.+): \s+ .+               \s*\n # Pertubation function
+    (.+): \s+ .+               \s*\n # Termination
     (.+): \s+ ([0-9]+)         \s*\n # Number of iterations       
     (.+): \s+ ([0-9\.e+-]+)    \s*\n # Residuum
+    \s*
+    .+:
+    ({RE_MATRIX.pattern})
+    .*
+    $
+""",
+    re.VERBOSE | re.DOTALL,
+)
+
+RE_OUTPUT_MASK_STRICT_3 = re.compile(
+    rf"""
+    ^
+    Berechnungszeit:     \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time (not captured!)
+    Speicherbedarf:      \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage  (not captured!)
+    Berechnungsmethode:  \s+ (.+)             \s*\n # Calculation method
+    Interlines:          \s+ ([0-9]+)         \s*\n # Interlines
+    Stoerfunktion:       \s+ (.+)             \s*\n # Pertubation function
+    Terminierung:        \s+ (.+)             \s*\n # Termination
+    Anzahl\sIterationen: \s+ ([0-9]+)         \s*\n # Number of iterations       
+    Norm\sdes\sFehlers:  \s+ ([0-9\.e+-]+)    \s*\n # Residuum
     \s*
     Matrix:
     ({RE_MATRIX.pattern})
@@ -95,6 +115,7 @@ OUTPUT_MASKS = [
     RE_OUTPUT_MASK_STRICT_0,
     RE_OUTPUT_MASK_STRICT_1,
     RE_OUTPUT_MASK_STRICT_2,
+    RE_OUTPUT_MASK_STRICT_3,
 ]
 
 REFERENCE_OUTPUT_PATH = Path.cwd() / ".." / "reference_output"
