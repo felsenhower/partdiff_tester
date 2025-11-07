@@ -4,10 +4,10 @@ import re
 import util
 
 
-def test_partdiff_parametrized(
-    partdiff_executable, reference_output_data, test_id, strictness
-):
+def test_partdiff_parametrized(pytestconfig, reference_output_data, test_id):
     partdiff_params, reference_output = reference_output_data[test_id]
+    partdiff_executable = pytestconfig.getoption("executable")
+    strictness = pytestconfig.getoption("strictness")
     command_line = partdiff_executable + list(partdiff_params)
     actual_output = subprocess.check_output(command_line).decode("utf-8")
     re_output_mask = util.OUTPUT_MASKS[strictness]

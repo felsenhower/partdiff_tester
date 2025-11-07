@@ -3,8 +3,17 @@ import shlex
 import util
 
 
+def shlex_list_str(value: str) -> list[str]:
+    return shlex.split(value)
+
+
 def pytest_addoption(parser):
-    parser.addoption("--executable", help="Path to partdiff executable.", required=True)
+    parser.addoption(
+        "--executable",
+        help="Path to partdiff executable.",
+        required=True,
+        type=shlex_list_str,
+    )
     parser.addoption(
         "--strictness",
         help="Strictness of the check.",
@@ -12,17 +21,6 @@ def pytest_addoption(parser):
         default=0,
         choices=range(len(util.OUTPUT_MASKS)),
     )
-
-
-@pytest.fixture
-def partdiff_executable(request):
-    value = request.config.getoption("--executable")
-    return shlex.split(value)
-
-
-@pytest.fixture
-def strictness(request):
-    return request.config.getoption("--strictness")
 
 
 @pytest.fixture
