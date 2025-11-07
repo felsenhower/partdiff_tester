@@ -3,16 +3,29 @@ from pathlib import Path
 import re
 import shlex
 from functools import cache
+import util
 
 
 def pytest_addoption(parser):
-    parser.addoption("--executable", help="Path to partdiff executable", required=True)
+    parser.addoption("--executable", help="Path to partdiff executable.", required=True)
+    parser.addoption(
+        "--strictness",
+        help="Strictness of the check.",
+        type=int,
+        default=0,
+        choices=range(len(util.OUTPUT_MASKS)),
+    )
 
 
 @pytest.fixture
 def partdiff_executable(request):
     value = request.config.getoption("--executable")
     return shlex.split(value)
+
+
+@pytest.fixture
+def strictness(request):
+    return request.config.getoption("--strictness")
 
 
 REFERENCE_OUTPUT_PATH = Path.cwd() / ".." / "reference_output"
