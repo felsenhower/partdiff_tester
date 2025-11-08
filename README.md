@@ -23,16 +23,18 @@ $ pytest --executable='/path/to/partdiff'
 
 Currently, all tests are executed sequentially. On my machine, this takes about 20 seconds. Use `--verbose` if you want to see what's going on.
 
-The test contains some custom options. Here is an excerpt from `pytest --help`:
+The test contains some custom options:
 
-```
-Custom options:
+```shell
+$ uv run pytest --help | awk '/^Custom options for test_partdiff/{y=1}/^\[pytest\]/{y=0}y'
+Custom options for test_partdiff:
   --executable=EXECUTABLE
                         Path to partdiff executable.
   --strictness={0,1,2,3,4}
                         Strictness of the check.
   --valgrind            Use valgrind to execute the given executable
   --max-num-tests=n     Only perform n tests (0 == unlimited)
+
 ```
 
 The custom options are explained below.

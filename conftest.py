@@ -8,25 +8,26 @@ def shlex_list_str(value: str) -> list[str]:
 
 
 def pytest_addoption(parser):
-    parser.addoption(
+    custom_options = parser.getgroup("Custom options for test_partdiff")
+    custom_options.addoption(
         "--executable",
         help="Path to partdiff executable.",
         required=True,
         type=shlex_list_str,
     )
-    parser.addoption(
+    custom_options.addoption(
         "--strictness",
         help="Strictness of the check.",
         type=int,
         default=0,
         choices=range(len(util.OUTPUT_MASKS)),
     )
-    parser.addoption(
+    custom_options.addoption(
         "--valgrind",
         help="Use valgrind to execute the given executable",
         action="store_true",
     )
-    parser.addoption(
+    custom_options.addoption(
         "--max-num-tests",
         metavar="n",
         help="Only perform n tests (0 == unlimited)",
