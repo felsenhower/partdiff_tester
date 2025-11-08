@@ -74,7 +74,7 @@ Start the executable with `valgrind --leak-check=full`.
 
 This takes very long!
 
-### TODO: `max-num-tests`
+### `max-num-tests`
 
 Limit the total number of tests to `n`.
 
