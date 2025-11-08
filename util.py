@@ -127,7 +127,7 @@ OUTPUT_MASKS = [
     RE_OUTPUT_MASK_STRICT_4,
 ]
 
-REFERENCE_OUTPUT_PATH = Path.cwd() / ".." / "reference_output"
+REFERENCE_OUTPUT_PATH = Path.cwd() / "reference_output"
 
 RE_REF_OUTPUT_FILE = re.compile(
     r"""
