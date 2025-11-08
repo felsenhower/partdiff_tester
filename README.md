@@ -12,6 +12,12 @@ This repository contains a testing script for `partdiff` based on `pytest`.
 Example usage:
 
 ```shell
+$ uv run pytest --executable='/path/to/partdiff'
+```
+
+Or if you have `pytest` installed:
+
+```shell
 $ pytest --executable='/path/to/partdiff'
 ```
 
@@ -26,6 +32,7 @@ Custom options:
   --strictness={0,1,2,3,4}
                         Strictness of the check.
   --valgrind            Use valgrind to execute the given executable
+  --max-num-tests=n     Only perform n tests (0 == unlimited)
 ```
 
 The custom options are explained below.
@@ -65,6 +72,12 @@ Start the executable with `valgrind --leak-check=full`.
 
 This takes very long!
 
+### TODO: `max-num-tests`
+
+Limit the total number of tests to `n`.
+
+If `n=0`, all tests are performed.
+
 ### TODO: `filter`
 
 Filter args, e.g. only `termination=1`.
@@ -77,9 +90,7 @@ Set working directory
 
 Support more than one thread
 
-### TODO: 'max_num_tests`
 
-Only do `n` tests.
 
 ### TODO: `reference_source`
 

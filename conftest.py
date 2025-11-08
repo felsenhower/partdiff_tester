@@ -26,6 +26,13 @@ def pytest_addoption(parser):
         help="Use valgrind to execute the given executable",
         action="store_true",
     )
+    parser.addoption(
+        "--max-num-tests",
+        metavar="n",
+        help="Only perform n tests (0 == unlimited)",
+        type=int,
+        default=0,
+    )
 
 
 @pytest.fixture
@@ -35,5 +42,8 @@ def reference_output_data():
 
 def pytest_generate_tests(metafunc):
     if "test_id" in metafunc.fixturenames:
-        test_ids = util.get_reference_output_data_map().keys()
+        test_ids = list(util.get_reference_output_data_map().keys())
+        max_num_tests = metafunc.config.getoption("max_num_tests")
+        if max_num_tests:
+            test_ids = test_ids[:max_num_tests]
         metafunc.parametrize("test_id", test_ids)
