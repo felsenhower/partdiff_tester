@@ -1,6 +1,6 @@
 # partdiff_tester
 
-This directory contains a testing script for `partdiff` based on `pytest`.
+This repository contains a testing script for `partdiff` based on `pytest`.
 
 ## Dependencies
 
@@ -80,3 +80,9 @@ Support more than one thread
 ### TODO: 'max_num_tests`
 
 Only do `n` tests.
+
+### TODO: `reference_source`
+
+- `cache` ==> Load from `reference_output` only
+- `impl` ==> Start partdiff in `reference_implementation` only
+- `auto` ==> Try to read from `reference_output` and fall back to reference impl, if data is not available
