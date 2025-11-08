@@ -5,25 +5,14 @@ IFS=$'\n\t'
 
 [ "${SHELLCHECK:-0}" == "1" ] && shellcheck "$0"
 
-function usage {
-cat << EOF
-Usage: ./make_reference.sh COMMAND [ARG]...
+PARTDIFF_EXEC='reference_implementation/partdiff'
 
-Create partdiff reference data.
-
-COMMAND is the path to the partdiff executable.
-
-Example:
-    ./make_reference.sh /path/to/partdiff
-EOF
-}
-
-if (( "$#" == 0 )) ; then
-    usage
+if ! [[ -x "$PARTDIFF_EXEC" ]] ; then
+    printf 'Error: partdiff executable "%s" does not exist or is not executable.\n' "$PARTDIFF_EXEC"
+    echo 'Maybe you need to build it first?'
+    echo '$ make -C reference_implementation'
     exit 1
 fi
-
-PARTDIFF_EXEC=( "$@" )
 
 TIMEOUT_DURATION=2
 OUTPUT_DIRECTORY='./reference_output'
@@ -40,9 +29,9 @@ function run_partdiff {
     func="$4"
     term="$5"
     preciter="$6"
-    echo -n "${PARTDIFF_EXEC[@]}" "$num" "$method" "$lines" "$func" "$term" "$preciter"
+    echo -n "$PARTDIFF_EXEC" "$num" "$method" "$lines" "$func" "$term" "$preciter"
     set +e
-    output="$(timeout "$TIMEOUT_DURATION" "${PARTDIFF_EXEC[@]}" "$num" "$method" "$lines" "$func" "$term" "$preciter")"
+    output="$(timeout "$TIMEOUT_DURATION" "$PARTDIFF_EXEC" "$num" "$method" "$lines" "$func" "$term" "$preciter")"
     exit_code="$?"
     set -e
     success="$((exit_code == 0))"
