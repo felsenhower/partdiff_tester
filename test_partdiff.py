@@ -5,10 +5,11 @@ import util
 
 
 def test_partdiff_parametrized(pytestconfig, reference_output_data, test_id):
+    partdiff_params = tuple(test_id.split())
     partdiff_executable = pytestconfig.getoption("executable")
     strictness = pytestconfig.getoption("strictness")
     use_valgrind = pytestconfig.getoption("valgrind")
-    partdiff_params, reference_output = reference_output_data[test_id]
+    reference_output = reference_output_data[partdiff_params]
 
     command_line = partdiff_executable + list(partdiff_params)
     if use_valgrind:

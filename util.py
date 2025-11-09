@@ -177,6 +177,6 @@ def get_test_case_names():
 @cache
 def get_reference_output_data_map():
     return {
-        " ".join(partdiff_params): (partdiff_params, reference_output)
+        partdiff_params: reference_output
         for (partdiff_params, reference_output) in iter_reference_output_data()
     }
