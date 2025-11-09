@@ -43,7 +43,7 @@ def reference_output_data():
 
 def pytest_generate_tests(metafunc):
     if "test_id" in metafunc.fixturenames:
-        test_ids = [" ".join(line) for line in util.get_test_cases()]
+        test_ids = util.get_test_case_names()
         max_num_tests = metafunc.config.getoption("max_num_tests")
         if max_num_tests:
             test_ids = test_ids[:max_num_tests]
