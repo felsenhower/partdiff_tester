@@ -2,18 +2,37 @@ import pytest
 import subprocess
 import re
 import util
+from pathlib import Path
+import os
+
+REFERENCE_IMPLEMENTATION_DIR = Path.cwd() / "reference_implementation"
+REFERENCE_IMPLEMENTATION_EXEC = REFERENCE_IMPLEMENTATION_DIR / "partdiff"
+
+
+def ensure_reference_implementation_exists():
+    def is_executable():
+        executable = REFERENCE_IMPLEMENTATION_EXEC
+        return executable.exists() and os.access(executable, os.X_OK)
+
+    if is_executable():
+        return
+    subprocess.check_output(["make", "-C", REFERENCE_IMPLEMENTATION_DIR])
+    assert is_executable()
 
 
 def get_reference_output(partdiff_params, reference_output_data):
-    return reference_output_data[partdiff_params]
+    if partdiff_params in reference_output_data:
+        return reference_output_data[partdiff_params]
+    ensure_reference_implementation_exists()
+    command_line = [REFERENCE_IMPLEMENTATION_EXEC] + list(partdiff_params)
+    return subprocess.check_output(command_line).decode("utf-8")
 
 
 def get_actual_output(partdiff_params, partdiff_executable, use_valgrind):
     command_line = partdiff_executable + list(partdiff_params)
     if use_valgrind:
         command_line = ["valgrind", "--leak-check=full"] + command_line
-    actual_output = subprocess.check_output(command_line).decode("utf-8")
-    return actual_output
+    return subprocess.check_output(command_line).decode("utf-8")
 
 
 def test_partdiff_parametrized(pytestconfig, reference_output_data, test_id):
