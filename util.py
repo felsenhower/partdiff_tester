@@ -173,8 +173,8 @@ def iter_test_cases():
 
 
 @cache
-def get_test_case_names():
-    return [" ".join(test_case) for test_case in iter_test_cases()]
+def get_test_cases():
+    return list(iter_test_cases())
 
 
 @cache

@@ -39,14 +39,17 @@ Custom options for test_partdiff:
   --executable=EXECUTABLE
                         Path to partdiff executable.
   --strictness={0,1,2,3,4}
-                        Strictness of the check.
-  --valgrind            Use valgrind to execute the given executable
-  --max-num-tests=n     Only perform n tests (0 == unlimited)
+                        Strictness of the check (default: 1)
+  --valgrind            Use valgrind to execute the given executable.
+  --max-num-tests=n     Only perform n tests (default: 0 == unlimited).
   --reference-source={auto,cache,impl}
                         Select the source of the reference output (cache == use
                         only cached output from disk; impl == always execute
                         reference implementation; auto (default) == try cache
-                        and fall back to impl)
+                        and fall back to impl).
+  --num-threads=n       Run the tests with n threads (default: 1). Comma-
+                        separated lists and number ranges are supported (e.g.
+                        "1-3,5-6").
 
 
 ```
@@ -91,7 +94,7 @@ This takes very long!
 
 ### `max-num-tests`
 
-Limit the total number of tests to `n`.
+Limit the total number of tests to `n` (default: 0).
 
 If `n=0`, all tests are performed.
 
@@ -103,6 +106,32 @@ Control which data source is used to obtain the reference output:
 - `impl` ==> Start partdiff in `reference_implementation` only
 - `auto` (default) ==> Try to read from `reference_output` and fall back to reference impl, if data is not available
 
+### `num-threads`
+
+Run the tests with `n` threads (default: 1).
+
+You can pass a comma-separated list that may also contain ranges, so this works: `1-4,8-16`.
+
+The tests are repeated for all selected number of threads.
+
+The test duplication happens after `max-num-tests` is applied, so `--max-num-tests=10 --num-threads=1-8` will run 80 tests.
+
+Only the partdiff implementation given by `--executable=EXECUTABLE` is affected by this setting; for the reference output, a thread number of 1 is used.
+So for example, when `--num-threads=8` is used, the console might show a test like
+```
+test_partdiff.py::test_partdiff_parametrized[8 1 0 2 2 1000]
+```
+Here, `EXECUTABLE` will be started with the parameters `8 1 0 2 2 1000`, but the reference output will be obtained by reading from `reference_output/partdiff_1_1_0_2_2_1000.txt` or by running `reference_implementation/partdiff 1 1 0 2 2 1000` (depending on the value of `--reference-source`).
+
+> [!TIP]
+> If you want to test a partdiff that was parallelized with MPI, you can do that by modifying `--executable`.
+> This should work:
+> ```shell
+> for nprocs in {1..8} ; do
+>   uv run pytest --executable="$(printf 'mpirun -n%d /path/to/partdiff' "$nprocs")"
+> done
+>  ```
+
 ### TODO: `filter`
 
 Filter args, e.g. only `termination=1`.
@@ -110,8 +139,3 @@ Filter args, e.g. only `termination=1`.
 ### TODO: `cwd`
 
 Set working directory
-
-### TODO: `threads`
-
-Support more than one thread
-

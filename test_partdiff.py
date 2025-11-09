@@ -22,6 +22,9 @@ def ensure_reference_implementation_exists():
 
 
 def get_reference_output(partdiff_params, reference_output_data, reference_source):
+    # Force the number of threads to 1:
+    partdiff_params = ("1",) + partdiff_params[1:]
+
     def get_from_cache():
         return reference_output_data[partdiff_params]
 
