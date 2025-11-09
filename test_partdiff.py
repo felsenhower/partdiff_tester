@@ -4,6 +4,7 @@ import re
 import util
 from pathlib import Path
 import os
+from util import ReferenceSource
 
 REFERENCE_IMPLEMENTATION_DIR = Path.cwd() / "reference_implementation"
 REFERENCE_IMPLEMENTATION_EXEC = REFERENCE_IMPLEMENTATION_DIR / "partdiff"
@@ -20,12 +21,30 @@ def ensure_reference_implementation_exists():
     assert is_executable()
 
 
-def get_reference_output(partdiff_params, reference_output_data):
-    if partdiff_params in reference_output_data:
+def get_reference_output(partdiff_params, reference_output_data, reference_source):
+    def get_from_cache():
         return reference_output_data[partdiff_params]
-    ensure_reference_implementation_exists()
-    command_line = [REFERENCE_IMPLEMENTATION_EXEC] + list(partdiff_params)
-    return subprocess.check_output(command_line).decode("utf-8")
+
+    def get_from_impl():
+        ensure_reference_implementation_exists()
+        command_line = [REFERENCE_IMPLEMENTATION_EXEC] + list(partdiff_params)
+        return subprocess.check_output(command_line).decode("utf-8")
+
+    match reference_source:
+        case ReferenceSource.auto:
+            if partdiff_params in reference_output_data:
+                return get_from_cache()
+            return get_from_impl()
+        case ReferenceSource.cache:
+            if not partdiff_params in reference_output_data:
+                raise RuntimeError(
+                    'Parameter combination "{}" was not found in cache'.format(
+                        " ".join(partdiff_params)
+                    )
+                )
+            return get_from_cache()
+        case ReferenceSource.impl:
+            return get_from_impl()
 
 
 def get_actual_output(partdiff_params, partdiff_executable, use_valgrind):
@@ -41,11 +60,14 @@ def test_partdiff_parametrized(pytestconfig, reference_output_data, test_id):
     partdiff_executable = pytestconfig.getoption("executable")
     strictness = pytestconfig.getoption("strictness")
     use_valgrind = pytestconfig.getoption("valgrind")
+    reference_source = pytestconfig.getoption("reference_source")
 
     actual_output = get_actual_output(
         partdiff_params, partdiff_executable, use_valgrind
     )
-    reference_output = get_reference_output(partdiff_params, reference_output_data)
+    reference_output = get_reference_output(
+        partdiff_params, reference_output_data, reference_source
+    )
 
     re_output_mask = util.OUTPUT_MASKS[strictness]
 

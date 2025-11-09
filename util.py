@@ -3,6 +3,9 @@
 import re
 from functools import cache
 from pathlib import Path
+from enum import StrEnum
+
+ReferenceSource = StrEnum("ReferenceSource", ["auto", "cache", "impl"])
 
 RE_MATRIX_FLOAT = re.compile(r"[01]\.[0-9]{4}")
 

@@ -7,6 +7,10 @@ def shlex_list_str(value: str) -> list[str]:
     return shlex.split(value)
 
 
+def reference_source_param(value: str) -> util.ReferenceSource:
+    return util.ReferenceSource(value)
+
+
 def pytest_addoption(parser):
     custom_options = parser.getgroup("Custom options for test_partdiff")
     custom_options.addoption(
@@ -33,6 +37,18 @@ def pytest_addoption(parser):
         help="Only perform n tests (0 == unlimited)",
         type=int,
         default=0,
+    )
+    custom_options.addoption(
+        "--reference-source",
+        help=(
+            "Select the source of the reference output "
+            "(cache == use only cached output from disk; "
+            "impl == always execute reference implementation; "
+            "auto (default) == try cache and fall back to impl)"
+        ),
+        type=reference_source_param,
+        default=util.ReferenceSource.auto,
+        choices=util.ReferenceSource,
     )
 
 
