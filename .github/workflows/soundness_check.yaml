@@ -1,0 +1,30 @@
+name: Soundness Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Valgrind
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+
+      - name: Build C program
+        run: make -C reference_implementation
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.8"
+
+      - name: Set up Python
+        run: uv python install
+          
+      - name: Run soundness check
+        run: uv run pytest --verbose --executable='reference_implementation/partdiff' --strictness=4
