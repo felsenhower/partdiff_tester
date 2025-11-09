@@ -27,4 +27,4 @@ jobs:
         run: uv python install
           
       - name: Run soundness check
-        run: uv run pytest --verbose --executable='reference_implementation/partdiff' --strictness=4
+        run: uv run pytest --verbose --executable='reference_implementation/partdiff' --strictness=4 --valgrind
