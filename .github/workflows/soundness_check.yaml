@@ -15,7 +15,7 @@ jobs:
       - name: Install Valgrind
         run: sudo apt-get update && sudo apt-get install -y valgrind
 
-      - name: Build C program
+      - name: Build reference implementation
         run: make -C reference_implementation
 
       - name: Install uv
