@@ -128,6 +128,7 @@ OUTPUT_MASKS = [
 ]
 
 REFERENCE_OUTPUT_PATH = Path.cwd() / "reference_output"
+TEST_CASES_FILE_PATH = Path.cwd() / "test_cases.txt"
 
 RE_REF_OUTPUT_FILE = re.compile(
     r"""
@@ -155,6 +156,22 @@ def iter_reference_output_data():
         assert len(partdiff_params) == 6
         reference_output = p.read_text()
         yield (partdiff_params, reference_output)
+
+
+def iter_test_cases():
+    with TEST_CASES_FILE_PATH.open() as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            fields = line.split()
+            assert len(fields) == 6
+            yield tuple(fields)
+
+
+@cache
+def get_test_cases():
+    return list(iter_test_cases())
 
 
 @cache
