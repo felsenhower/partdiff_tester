@@ -3,6 +3,7 @@ import shlex
 import util
 import re
 import itertools
+import json
 
 
 def shlex_list_str(value: str) -> list[str]:
@@ -39,6 +40,64 @@ def num_list(value: str) -> list[int]:
         )
 
     return result
+
+
+def partdiff_params_filter_regex(value: str) -> re.Pattern:
+    def parse_json_sequence(value: str) -> re.Pattern:
+        try:
+            j = json.loads(value)
+        except json.decoder.JSONDecodeError:
+            raise ValueError("Ivalid JSON.")
+        if not isinstance(j, list):
+            raise ValueError("Not a sequence.")
+        if len(j) != 6:
+            raise ValueError("Incorrect length.")
+        for s in j:
+            if not isinstance(s, str):
+                raise ValueError("Sequence member not a str.")
+        try:
+            return re.compile(" ".join(j))
+        except re.PatternError:
+            raise ValueError("Incorrect regex in sequence.")
+
+    def parse_json_object(value: str) -> re.Pattern:
+        try:
+            j = json.loads(value)
+        except json.decoder.JSONDecodeError:
+            raise ValueError("Ivalid JSON.")
+        if not isinstance(j, dict):
+            raise ValueError("Not an object.")
+        if len(j.keys()) != len(set(j.keys())):
+            raise ValueError("Keys not unique.")
+        for k, v in j.items():
+            if not isinstance(k, str):
+                raise ValueError("Object key not a str.")
+            if not isinstance(v, str):
+                raise ValueError("Object value not a str.")
+        allowed_params = ("num", "method", "lines", "func", "term", "prec/iter")
+        if not set(j.keys()).issubset(allowed_params):
+            raise ValueError("Invalid params.")
+        try:
+            return re.compile(" ".join(j.get(p, r"\w+") for p in allowed_params))
+        except re.PatternError:
+            raise ValueError("Incorrect regex in object.")
+
+    def parse_regex_str(value: str) -> re.Pattern:
+        try:
+            return re.compile(value)
+        except re.PatternError:
+            raise ValueError("Incorrect regex.")
+
+    filter_variant = value[:2]
+    value = value[2:]
+    match filter_variant:
+        case "r:":
+            return parse_regex_str(value)
+        case "o:":
+            return parse_json_object(value)
+        case "s:":
+            return parse_json_sequence(value)
+    raise ValueError(f'The filter "{value}" could not be parsed.')
 
 
 def pytest_addoption(parser):
@@ -90,6 +149,27 @@ def pytest_addoption(parser):
         type=num_list,
         default=[1],
     )
+    custom_options.addoption(
+        "--filter",
+        help=(
+            re.sub(
+                r"\s+",
+                " ",
+                r"""
+            Filter the test configs with regex.
+            You can pass a single regex with "r:"
+            (e.g. 'r:\w+ 1 \w+ \w+ \w+ \w+'),
+            a JSON-object with "o:"
+            (e.g. 'o:{"method": "1"}'),
+            or a JSON-sequence with "s:"
+            (e.g. 's:["\\w+", "1", "\\w+", "\\w+", "\\w+", "\\w+"]').
+            """,
+            ).strip()
+        ),
+        action="append",
+        type=partdiff_params_filter_regex,
+        default=[],
+    )
 
 
 @pytest.fixture
@@ -101,6 +181,7 @@ def pytest_generate_tests(metafunc):
     if "test_id" in metafunc.fixturenames:
         max_num_tests = metafunc.config.getoption("max_num_tests")
         num_threads_list = metafunc.config.getoption("num_threads")
+        filter_regexes = metafunc.config.getoption("filter")
         test_cases = util.get_test_cases()
         if max_num_tests:
             test_cases = test_cases[:max_num_tests]
@@ -112,4 +193,9 @@ def pytest_generate_tests(metafunc):
             ) in itertools.product(num_threads_list, test_cases)
         ]
         test_ids = [" ".join(test_case) for test_case in test_cases]
+        test_ids = [
+            test_id
+            for test_id in test_ids
+            if all(regex.match(test_id) for regex in filter_regexes)
+        ]
         metafunc.parametrize("test_id", test_ids)

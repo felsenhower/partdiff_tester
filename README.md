@@ -50,8 +50,11 @@ Custom options for test_partdiff:
   --num-threads=n       Run the tests with n threads (default: 1). Comma-
                         separated lists and number ranges are supported (e.g.
                         "1-3,5-6").
-
-
+  --filter=FILTER       Filter the test configs with regex. You can pass a
+                        single regex with "r:" (e.g. 'r:\w+ 1 \w+ \w+ \w+ \w+'),
+                        a JSON-object with "o:" (e.g. 'o:{"method": "1"}'), or a
+                        JSON-sequence with "s:" (e.g. 's:["\\w+", "1", "\\w+",
+                        "\\w+", "\\w+", "\\w+"]').
 ```
 
 The custom options are explained below.
@@ -132,9 +135,23 @@ Here, `EXECUTABLE` will be started with the parameters `8 1 0 2 2 1000`, but the
 > done
 >  ```
 
-### TODO: `filter`
+### `filter`
 
-Filter args, e.g. only `termination=1`.
+Filter the tests with regex.
+
+You can pass multiple different kinds of values to pass to this argument:
+
+- Prepend `r:` to pass a single regex that has to match the space-separated list of parameters that are passed to partdiff.
+  E.g. when passing `--filter='r:\w+ 1 \w+ \w+ \w+ \w+'`, only tests with Gauss-Seidel will be selected (since the second argument has to be "1").
+- Prepend `s:` to pass a JSON-sequence of regexes that will be applied to each of the parameters that are passed to partdiff.
+  E.g. pass `'--filter=s:["\\w+", "1", "\\w+", "\\w+", "\\w+", "\\w+"]'` to filter for Gauss-Seidel.
+  The sequence has to be a 6-tuple (since partdiff expects 6 parameters) and all sequence members have to be a valid regex as string.
+- Prepend `o:` to pass a JSON-object, where the allowed keys are `("num", "method", "lines", "func", "term", "prec/iter")` and the values will be valid regexes as str.
+  E.g. pass `--filter='o:{"method": "1"}'` to filter for Gauss-Seidel.
+
+This setting is applied after `num-threads`, so you can filter `num` too.
+
+`--filter` can be passed multiple times.
 
 ### TODO: `cwd`
 
