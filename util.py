@@ -4,6 +4,7 @@ import re
 from functools import cache
 from pathlib import Path
 from enum import StrEnum
+from collections.abc import Iterator
 
 ReferenceSource = StrEnum("ReferenceSource", ["auto", "cache", "impl"])
 
@@ -149,8 +150,10 @@ RE_REF_OUTPUT_FILE = re.compile(
     re.VERBOSE | re.DOTALL,
 )
 
+partdiff_params_tuple = tuple[str, str, str, str, str, str]
 
-def iter_reference_output_data():
+
+def iter_reference_output_data() -> Iterator[tuple[partdiff_params_tuple, str]]:
     assert REFERENCE_OUTPUT_PATH.is_dir()
     for p in REFERENCE_OUTPUT_PATH.iterdir():
         m = RE_REF_OUTPUT_FILE.match(p.name)
@@ -161,24 +164,24 @@ def iter_reference_output_data():
         yield (partdiff_params, reference_output)
 
 
-def iter_test_cases():
+def iter_test_cases() -> Iterator[partdiff_params_tuple]:
     with TEST_CASES_FILE_PATH.open() as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
-            fields = line.split()
+            fields = tuple(line.split())
             assert len(fields) == 6
-            yield tuple(fields)
+            yield fields
 
 
 @cache
-def get_test_cases():
+def get_test_cases() -> list[partdiff_params_tuple]:
     return list(iter_test_cases())
 
 
 @cache
-def get_reference_output_data_map():
+def get_reference_output_data_map() -> dict[partdiff_params_tuple, str]:
     return {
         partdiff_params: reference_output
         for (partdiff_params, reference_output) in iter_reference_output_data()

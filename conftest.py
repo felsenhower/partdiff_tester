@@ -4,6 +4,7 @@ import util
 import re
 import itertools
 import json
+from util import partdiff_params_tuple
 
 
 def shlex_list_str(value: str) -> list[str]:
@@ -100,7 +101,7 @@ def partdiff_params_filter_regex(value: str) -> re.Pattern:
     raise ValueError(f'The filter "{value}" could not be parsed.')
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     custom_options = parser.getgroup("Custom options for test_partdiff")
     custom_options.addoption(
         "--executable",
@@ -173,11 +174,11 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def reference_output_data():
+def reference_output_data() -> dict[partdiff_params_tuple, str]:
     return util.get_reference_output_data_map()
 
 
-def pytest_generate_tests(metafunc):
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     if "test_id" in metafunc.fixturenames:
         max_num_tests = metafunc.config.getoption("max_num_tests")
         num_threads_list = metafunc.config.getoption("num_threads")

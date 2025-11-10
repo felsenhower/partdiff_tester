@@ -4,13 +4,13 @@ import re
 import util
 from pathlib import Path
 import os
-from util import ReferenceSource
+from util import ReferenceSource, partdiff_params_tuple
 
 REFERENCE_IMPLEMENTATION_DIR = Path.cwd() / "reference_implementation"
 REFERENCE_IMPLEMENTATION_EXEC = REFERENCE_IMPLEMENTATION_DIR / "partdiff"
 
 
-def ensure_reference_implementation_exists():
+def ensure_reference_implementation_exists() -> None:
     def is_executable():
         executable = REFERENCE_IMPLEMENTATION_EXEC
         return executable.exists() and os.access(executable, os.X_OK)
@@ -21,9 +21,13 @@ def ensure_reference_implementation_exists():
     assert is_executable()
 
 
-def get_reference_output(partdiff_params, reference_output_data, reference_source):
+def get_reference_output(
+    partdiff_params: partdiff_params_tuple,
+    reference_output_data: dict[partdiff_params_tuple, str],
+    reference_source: ReferenceSource,
+) -> str:
     # Force the number of threads to 1:
-    partdiff_params = ("1",) + partdiff_params[1:]
+    partdiff_params = ("1",) + partdiff_params[1:6]
 
     def get_from_cache():
         return reference_output_data[partdiff_params]
@@ -48,17 +52,30 @@ def get_reference_output(partdiff_params, reference_output_data, reference_sourc
             return get_from_cache()
         case ReferenceSource.impl:
             return get_from_impl()
+        case _:
+            raise ValueError(
+                f'Encountered unexepected reference source "{reference_source}"'
+            )
 
 
-def get_actual_output(partdiff_params, partdiff_executable, use_valgrind):
+def get_actual_output(
+    partdiff_params: partdiff_params_tuple,
+    partdiff_executable: list[str],
+    use_valgrind: bool,
+) -> str:
     command_line = partdiff_executable + list(partdiff_params)
     if use_valgrind:
         command_line = ["valgrind", "--leak-check=full"] + command_line
     return subprocess.check_output(command_line).decode("utf-8")
 
 
-def test_partdiff_parametrized(pytestconfig, reference_output_data, test_id):
+def test_partdiff_parametrized(
+    pytestconfig: pytest.Config,
+    reference_output_data: dict[partdiff_params_tuple, str],
+    test_id: str,
+) -> None:
     partdiff_params = tuple(test_id.split())
+    assert len(partdiff_params) == 6
 
     partdiff_executable = pytestconfig.getoption("executable")
     strictness = pytestconfig.getoption("strictness")
