@@ -7,6 +7,21 @@ This repository contains a testing script for `partdiff` based on `pytest`.
 - Python
 - `pytest`
 
+## How it works
+
+partdiff_tester is based on `pytest` which is a testing framework for Python.
+[By default](https://docs.python.org/3/library/unittest.html#unittest-test-discovery),
+`pytest` automatically picks up the tests contained in `test_partdiff.py` and uses `conftest.py` for configuration.
+The test cases are loaded from `test_cases.txt`; `pytest` generates the test cases automatically.
+
+The output of a partdiff executable is simply compared to the output of the known good reference implementation.
+The strictness of this check is configurable via the `--strictness` argument, e.g. with `--strictness=0`, only the matrix is compared, and with `--strictness=4`, the output has to match completely (except for the actual values of runtime and memory consumption).
+If desired, a `valgrind` check can also be performed (see `--valgrind`).
+
+The directory `reference_output` contains a collection of cached reference outputs.
+If a test case is supposed to test a parameter configuration of which the output isn't cached, the reference implementation can also be used instead (see `--reference-source`).
+The content of `reference_output` and `test_cases.txt` is generated with the `make_reference_output.sh` script.
+
 ## Usage
 
 Example usage:
