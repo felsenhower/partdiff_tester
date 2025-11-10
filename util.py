@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+"""Utility functions that are used by both `conftest.py` and `test_partdiff.py`."""
 
 import re
+from collections.abc import Iterator
+from enum import StrEnum
 from functools import cache
 from pathlib import Path
-from enum import StrEnum
-from collections.abc import Iterator
 
 ReferenceSource = StrEnum("ReferenceSource", ["auto", "cache", "impl"])
 
@@ -154,6 +154,12 @@ partdiff_params_tuple = tuple[str, str, str, str, str, str]
 
 
 def iter_reference_output_data() -> Iterator[tuple[partdiff_params_tuple, str]]:
+    """Iterate over the reference output data.
+
+    Yields:
+        Iterator[tuple[partdiff_params_tuple, str]]: An iterator over the partdiff params and the corresponding output
+            of the reference implementation.
+    """
     assert REFERENCE_OUTPUT_PATH.is_dir()
     for p in REFERENCE_OUTPUT_PATH.iterdir():
         m = RE_REF_OUTPUT_FILE.match(p.name)
@@ -165,6 +171,11 @@ def iter_reference_output_data() -> Iterator[tuple[partdiff_params_tuple, str]]:
 
 
 def iter_test_cases() -> Iterator[partdiff_params_tuple]:
+    """Iterate over the test cases.
+
+    Yields:
+        Iterator[partdiff_params_tuple]: An iterator over the partdiff params from the test cases.
+    """
     with TEST_CASES_FILE_PATH.open() as f:
         for line in f:
             line = line.strip()
@@ -177,12 +188,19 @@ def iter_test_cases() -> Iterator[partdiff_params_tuple]:
 
 @cache
 def get_test_cases() -> list[partdiff_params_tuple]:
+    """Get the test cases as a list.
+
+    Returns:
+        list[partdiff_params_tuple]: The test cases as a list of parameter tuples.
+    """
     return list(iter_test_cases())
 
 
 @cache
 def get_reference_output_data_map() -> dict[partdiff_params_tuple, str]:
-    return {
-        partdiff_params: reference_output
-        for (partdiff_params, reference_output) in iter_reference_output_data()
-    }
+    """Get the reference output as a dict.
+
+    Returns:
+        dict[partdiff_params_tuple, str]: A dict mapping parameter combinations to the corresponding output.
+    """
+    return dict(iter_reference_output_data())

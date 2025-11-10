@@ -1,17 +1,52 @@
-import pytest
-import shlex
-import util
-import re
+"""This file is automatically picked up by `pytest` to configure the tests.
+
+Here, we use it for the following things:
+
+1. Declaring additional test arguments with `pytest_addoption`:
+   https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_addoption
+   https://docs.pytest.org/en/stable/example/simple.html#pass-different-values-to-a-test-function-depending-on-command-line-options
+
+2. Parametrizing tests with `pytest_generate_tests`:
+   https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_generate_tests
+   https://docs.pytest.org/en/stable/how-to/parametrize.html
+   https://docs.pytest.org/en/stable/example/parametrize.html
+
+3. Supplying fixtures to the test file:
+   https://docs.pytest.org/en/stable/reference/fixtures.html#conftest-py-sharing-fixtures-across-multiple-files
+"""
+
 import itertools
 import json
+import re
+import shlex
+
+import pytest
+
+import util
 from util import partdiff_params_tuple
 
 
 def shlex_list_str(value: str) -> list[str]:
+    """Parse a space-separated (and possibly quoted) string into a list of strings using shlex.
+
+    Args:
+        value (str): The string to parse.
+
+    Returns:
+        list[str]: The parsed list.
+    """
     return shlex.split(value)
 
 
 def reference_source_param(value: str) -> util.ReferenceSource:
+    """Parse a ReferenceSource from str.
+
+    Args:
+        value (str): The str to parse.
+
+    Returns:
+        util.ReferenceSource: The parsed ReferenceSource.
+    """
     return util.ReferenceSource(value)
 
 
@@ -19,6 +54,22 @@ REGEX_NUM_LIST = re.compile(r"^(?:\d+(?:-\d+)?)(?:,\d+(?:-\d+)?)*$")
 
 
 def num_list(value: str) -> list[int]:
+    """Parse a comma-separated list of numbers (possibly containing ranges) from a str.
+
+    Some example for valid values:
+    - "1,2,3"
+    - "1-3"
+    - "1-3,5-8"
+
+    The list must be sorted and must not contain duplicates.
+
+    Args:
+        value (str): The str to parse.
+
+    Returns:
+        list[int]: The parsed list.
+    """
+
     def is_sorted(l) -> bool:
         return all(l[i] <= l[i + 1] for i in range(len(l) - 1))
 
@@ -44,11 +95,25 @@ def num_list(value: str) -> list[int]:
 
 
 def partdiff_params_filter_regex(value: str) -> re.Pattern:
+    """Parse a partdiff params filter from a str.
+
+    The following variants are allowed:
+    - "r:<regex>", where regex has to match the space-separated list of partdiff params
+    - "s:<sequence>", where sequence is a JSON sequence of regexes matching the individual partdiff params
+    - "o:<object>", where object is a JSON object matching the partdiff params by their name
+
+    Args:
+        value (str): The str to parse.
+
+    Returns:
+        re.Pattern: The parsed regex.
+    """
+
     def parse_json_sequence(value: str) -> re.Pattern:
         try:
             j = json.loads(value)
-        except json.decoder.JSONDecodeError:
-            raise ValueError("Ivalid JSON.")
+        except json.decoder.JSONDecodeError as e:
+            raise ValueError("Ivalid JSON.") from e
         if not isinstance(j, list):
             raise ValueError("Not a sequence.")
         if len(j) != 6:
@@ -58,14 +123,14 @@ def partdiff_params_filter_regex(value: str) -> re.Pattern:
                 raise ValueError("Sequence member not a str.")
         try:
             return re.compile(" ".join(j))
-        except re.PatternError:
-            raise ValueError("Incorrect regex in sequence.")
+        except re.PatternError as e:
+            raise ValueError("Incorrect regex in sequence.") from e
 
     def parse_json_object(value: str) -> re.Pattern:
         try:
             j = json.loads(value)
-        except json.decoder.JSONDecodeError:
-            raise ValueError("Ivalid JSON.")
+        except json.decoder.JSONDecodeError as e:
+            raise ValueError("Ivalid JSON.") from e
         if not isinstance(j, dict):
             raise ValueError("Not an object.")
         if len(j.keys()) != len(set(j.keys())):
@@ -80,14 +145,14 @@ def partdiff_params_filter_regex(value: str) -> re.Pattern:
             raise ValueError("Invalid params.")
         try:
             return re.compile(" ".join(j.get(p, r"\w+") for p in allowed_params))
-        except re.PatternError:
-            raise ValueError("Incorrect regex in object.")
+        except re.PatternError as e:
+            raise ValueError("Incorrect regex in object.") from e
 
     def parse_regex_str(value: str) -> re.Pattern:
         try:
             return re.compile(value)
-        except re.PatternError:
-            raise ValueError("Incorrect regex.")
+        except re.PatternError as e:
+            raise ValueError("Incorrect regex.") from e
 
     filter_variant = value[:2]
     value = value[2:]
@@ -102,6 +167,9 @@ def partdiff_params_filter_regex(value: str) -> re.Pattern:
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
+    """
+    See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_addoption
+    """
     custom_options = parser.getgroup("Custom options for test_partdiff")
     custom_options.addoption(
         "--executable",
@@ -175,10 +243,16 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 @pytest.fixture
 def reference_output_data() -> dict[partdiff_params_tuple, str]:
+    """
+    See util.get_reference_output_data_map()
+    """
     return util.get_reference_output_data_map()
 
 
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    """
+    See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_generate_tests
+    """
     if "test_id" in metafunc.fixturenames:
         max_num_tests = metafunc.config.getoption("max_num_tests")
         num_threads_list = metafunc.config.getoption("num_threads")
