@@ -21,6 +21,7 @@ import re
 import shlex
 from pathlib import Path
 from random import shuffle
+import shutil
 
 import pytest
 
@@ -308,3 +309,12 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
         test_ids = [" ".join(test_case) for test_case in test_cases]
         metafunc.parametrize("test_id", test_ids)
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """
+    See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_configure
+    """
+    if config.getoption("valgrind"):
+        if shutil.which("valgrind") is None:
+            raise RuntimeError("Passed --valgrind, but valgrind could not be found.")
