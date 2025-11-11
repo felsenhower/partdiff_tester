@@ -282,20 +282,20 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
         do_shuffle = metafunc.config.getoption("shuffle")
         test_cases = util.get_test_cases()
 
-        # 1. Apply the filter regexes (if desired):
-        test_cases = [
-            test_case
-            for test_case in test_cases
-            if all(regex.match(" ".join(test_case)) for regex in filter_regexes)
-        ]
-
-        # 2. Apply the selected number of threads:
+        # 1. Apply the selected number of threads:
         test_cases = [
             (str(num), method, lines, func, term, preciter)
             for (
                 num,
                 (_old_num, method, lines, func, term, preciter),
             ) in itertools.product(num_threads_list, test_cases)
+        ]
+
+        # 2. Apply the filter regexes (if desired):
+        test_cases = [
+            test_case
+            for test_case in test_cases
+            if all(regex.match(" ".join(test_case)) for regex in filter_regexes)
         ]
 
         # 3. Shuffle the tests (if desired):
