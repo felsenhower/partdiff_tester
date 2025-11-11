@@ -70,6 +70,8 @@ Custom options for test_partdiff:
                         a JSON-object with "o:" (e.g. 'o:{"method": "1"}'), or a
                         JSON-sequence with "s:" (e.g. 's:["\\w+", "1", "\\w+",
                         "\\w+", "\\w+", "\\w+"]').
+  --cwd=CWD             Set the working directory when launching EXECUTABLE
+                        (default: $PWD).
 ```
 
 The custom options are explained below.
@@ -168,6 +170,6 @@ This setting is applied after `num-threads`, so you can filter `num` too.
 
 `--filter` can be passed multiple times.
 
-### TODO: `cwd`
+### `cwd`
 
-Set working directory
+Set the working directory of `EXECUTABLE`.

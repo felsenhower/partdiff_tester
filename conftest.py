@@ -19,6 +19,7 @@ import itertools
 import json
 import re
 import shlex
+from pathlib import Path
 
 import pytest
 
@@ -166,6 +167,15 @@ def partdiff_params_filter_regex(value: str) -> re.Pattern:
     raise ValueError(f'The filter "{value}" could not be parsed.')
 
 
+def dir_path(value: str) -> Path:
+    p = Path(value)
+    if not p.exists():
+        raise ValueError(f'Path "{value}" does not exist.')
+    if not p.is_dir():
+        raise ValueError(f'Path "{value}" is not a directory.')
+    return p
+
+
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
     See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_addoption
@@ -238,6 +248,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="append",
         type=partdiff_params_filter_regex,
         default=[],
+    )
+    custom_options.addoption(
+        "--cwd",
+        help=("Set the working directory when launching EXECUTABLE (default: $PWD)."),
+        type=dir_path,
+        default=None,
     )
 
 
