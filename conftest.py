@@ -19,9 +19,9 @@ import itertools
 import json
 import re
 import shlex
+import shutil
 from pathlib import Path
 from random import shuffle
-import shutil
 
 import pytest
 
