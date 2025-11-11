@@ -6,13 +6,15 @@ This repository contains a testing script for `partdiff` based on `pytest`.
 
 - Python
 - `pytest`
+- `valgrind` (optional)
+- `make` (optional)
+- a C compiler (optional)
 
 ## How it works
 
-partdiff_tester is based on `pytest` which is a testing framework for Python.
-[By default](https://docs.python.org/3/library/unittest.html#unittest-test-discovery),
-`pytest` automatically picks up the tests contained in `test_partdiff.py` and uses `conftest.py` for configuration.
-The test cases are loaded from `test_cases.txt`; `pytest` generates the test cases automatically.
+`partdiff_tester` is based on `pytest` which is a testing framework for Python.
+`pytest` [automatically picks up the tests](https://docs.python.org/3/library/unittest.html#unittest-test-discovery) contained in `test_partdiff.py` and uses `conftest.py` for configuration.
+The test cases are loaded from `test_cases.txt`; `pytest` generates the test cases automatically. The selection of test cases can be modified via the arguments `--num-threads`, `--filter`, `--shuffle`, and `--max-num-tests`.
 
 The output of a partdiff executable is simply compared to the output of the known good reference implementation.
 The strictness of this check is configurable via the `--strictness` argument, e.g. with `--strictness=0`, only the matrix is compared, and with `--strictness=4`, the output has to match completely (except for the actual values of runtime and memory consumption).
@@ -36,7 +38,7 @@ Or if you have `pytest` installed:
 $ pytest --executable='/path/to/partdiff'
 ```
 
-The following perform a soundness check by essentially testing the reference reference implementation against itself. 
+The following performs a soundness check by essentially testing the reference implementation against itself. 
 
 ```shell
 $ uv run pytest --verbose --executable='reference_implementation/partdiff' --strictness=4 --valgrind
@@ -72,20 +74,28 @@ Custom options for test_partdiff:
                         "\\w+", "\\w+", "\\w+"]').
   --cwd=CWD             Set the working directory when launching EXECUTABLE
                         (default: $PWD).
+  --shuffle             Shuffle the test cases.
 ```
 
 The custom options are explained below.
+
+> [!INFO]
+> Some parameters modify the set of test cases. They are applied in this order:
+> 1. `--num-threads`
+> 2. `--filter`
+> 3. `--shuffle`
+> 4. `--max-num-tests`
 
 ### `executable`
 
 Path to the partdiff executable.
 
-Use `--executable=/path/to/partdiff` (not `--executable /path/to/partdiff`), because pytest's argparser is a bit dumb.
+Use `--executable=/path/to/partdiff` (not `--executable /path/to/partdiff` because pytest's argparser is a bit dumb).
 
 You can pass a space-separated list to do something like this:
 
 ```shell
-$ uv run pytest --executable='mpirun /path/to/partdiff'
+$ uv run pytest --executable='mpirun -np 2 /path/to/partdiff'
 ```
 
 Quoting is supported, so this works:
@@ -134,8 +144,6 @@ You can pass a comma-separated list that may also contain ranges, so this works:
 
 The tests are repeated for all selected number of threads.
 
-The test duplication happens after `max-num-tests` is applied, so `--max-num-tests=10 --num-threads=1-8` will run 80 tests.
-
 Only the partdiff implementation given by `--executable=EXECUTABLE` is affected by this setting; for the reference output, a thread number of 1 is used.
 So for example, when `--num-threads=8` is used, the console might show a test like
 ```
@@ -148,7 +156,7 @@ Here, `EXECUTABLE` will be started with the parameters `8 1 0 2 2 1000`, but the
 > This should work:
 > ```shell
 > for nprocs in {1..8} ; do
->   uv run pytest --executable="$(printf 'mpirun -n%d /path/to/partdiff' "$nprocs")"
+>   uv run pytest --executable="$(printf 'mpirun -np %d /path/to/partdiff' "$nprocs")"
 > done
 >  ```
 
@@ -173,3 +181,7 @@ This setting is applied after `num-threads`, so you can filter `num` too.
 ### `cwd`
 
 Set the working directory of `EXECUTABLE`.
+
+### `shuffle`
+
+Shuffle the test cases. Might be handy if you want to quickly test 10 random cases or so (`--shuffle --max-num-tests=10`).
