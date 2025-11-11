@@ -60,10 +60,10 @@ Custom options for test_partdiff:
   --valgrind            Use valgrind to execute the given executable.
   --max-num-tests=n     Only perform n tests (default: 0 == unlimited).
   --reference-source={auto,cache,impl}
-                        Select the source of the reference output (cache == use
-                        only cached output from disk; impl == always execute
-                        reference implementation; auto (default) == try cache
-                        and fall back to impl).
+                        Select the source of the reference output (cache
+                        (default) == use only cached output from disk; impl ==
+                        always execute reference implementation; auto == try
+                        cache and fall back to impl).
   --num-threads=n       Run the tests with n threads (default: 1). Comma-
                         separated lists and number ranges are supported (e.g.
                         "1-3,5-6").
@@ -132,9 +132,9 @@ If `n=0`, all tests are performed.
 
 Control which data source is used to obtain the reference output:
 
-- `cache` ==> Load from `reference_output` only
+- `cache` (default) ==> Load from `reference_output` only
 - `impl` ==> Start partdiff in `reference_implementation` only
-- `auto` (default) ==> Try to read from `reference_output` and fall back to reference impl, if data is not available
+- `auto` ==> Try to read from `reference_output` and fall back to reference impl, if data is not available
 
 ### `num-threads`
 

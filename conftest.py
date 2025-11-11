@@ -212,12 +212,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--reference-source",
         help=(
             "Select the source of the reference output "
-            "(cache == use only cached output from disk; "
+            "(cache (default) == use only cached output from disk; "
             "impl == always execute reference implementation; "
-            "auto (default) == try cache and fall back to impl)."
+            "auto == try cache and fall back to impl)."
         ),
         type=reference_source_param,
-        default=util.ReferenceSource.auto,
+        default=util.ReferenceSource.cache,
         choices=util.ReferenceSource,
     )
     custom_options.addoption(
