@@ -26,7 +26,7 @@ from random import shuffle
 import pytest
 
 import util
-from util import partdiff_params_tuple
+from util import ReferenceSource, partdiff_params_tuple
 
 
 def shlex_list_str(value: str) -> list[str]:
@@ -41,16 +41,16 @@ def shlex_list_str(value: str) -> list[str]:
     return shlex.split(value)
 
 
-def reference_source_param(value: str) -> util.ReferenceSource:
+def reference_source_param(value: str) -> ReferenceSource:
     """Parse a ReferenceSource from str.
 
     Args:
         value (str): The str to parse.
 
     Returns:
-        util.ReferenceSource: The parsed ReferenceSource.
+        ReferenceSource: The parsed ReferenceSource.
     """
-    return util.ReferenceSource(value)
+    return ReferenceSource(value)
 
 
 REGEX_NUM_LIST = re.compile(r"^(?:\d+(?:-\d+)?)(?:,\d+(?:-\d+)?)*$")
@@ -217,8 +217,8 @@ def pytest_addoption(parser: pytest.Parser) -> None:
             "auto == try cache and fall back to impl)."
         ),
         type=reference_source_param,
-        default=util.ReferenceSource.cache,
-        choices=util.ReferenceSource,
+        default=ReferenceSource.cache,
+        choices=ReferenceSource,
     )
     custom_options.addoption(
         "--num-threads",
@@ -315,6 +315,16 @@ def pytest_configure(config: pytest.Config) -> None:
     """
     See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_configure
     """
+    if config.getoption("reference_source") in (
+        ReferenceSource.auto,
+        ReferenceSource.impl,
+    ):
+        util.ensure_reference_implementation_exists()
+
+    util.check_executable_exists(
+        config.getoption("executable"), config.getoption("cwd")
+    )
+
     if config.getoption("valgrind"):
         if shutil.which("valgrind") is None:
             raise RuntimeError("Passed --valgrind, but valgrind could not be found.")

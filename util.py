@@ -252,7 +252,6 @@ def get_reference_output(
         return reference_output_data[partdiff_params]
 
     def get_from_impl():
-        ensure_reference_implementation_exists()
         command_line = [REFERENCE_IMPLEMENTATION_EXEC] + list(partdiff_params)
         return subprocess.check_output(command_line).decode("utf-8")
 
@@ -296,3 +295,18 @@ def get_actual_output(
     if use_valgrind:
         command_line = ["valgrind", "--leak-check=full"] + command_line
     return subprocess.check_output(command_line, cwd=cwd).decode("utf-8")
+
+
+def check_executable_exists(executable: list[str], cwd: Path | None) -> None:
+    """Check if the executable exists and can be executed by running it.
+
+    The executable is allowed to return a non-zero exit status.
+
+    Args:
+        executable (list[str]): The executable to check
+        cwd (Path | None): The working directory of the executable.
+    """
+    try:
+        subprocess.check_output(executable, cwd=cwd)
+    except subprocess.CalledProcessError:
+        pass
