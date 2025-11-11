@@ -20,6 +20,7 @@ import json
 import re
 import shlex
 from pathlib import Path
+from random import shuffle
 
 import pytest
 
@@ -255,6 +256,11 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         type=dir_path,
         default=None,
     )
+    custom_options.addoption(
+        "--shuffle",
+        help="Shuffle the test cases.",
+        action="store_true",
+    )
 
 
 @pytest.fixture
@@ -273,7 +279,10 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
         max_num_tests = metafunc.config.getoption("max_num_tests")
         num_threads_list = metafunc.config.getoption("num_threads")
         filter_regexes = metafunc.config.getoption("filter")
+        do_shuffle = metafunc.config.getoption("shuffle")
         test_cases = util.get_test_cases()
+        if do_shuffle:
+            shuffle(test_cases)
         if max_num_tests:
             test_cases = test_cases[:max_num_tests]
         test_cases = [
