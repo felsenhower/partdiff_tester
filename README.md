@@ -4,17 +4,23 @@ This repository contains a testing script for `partdiff` based on `pytest`.
 
 ## Dependencies
 
-- Python
-- `pytest`
+- `uv`\*
 - `valgrind` (optional)
 - `make` (optional)
 - a C compiler (optional)
 
+\*: When you don't want to use `uv`, you can install the Python dependencies manually:
+- Python
+- `pytest`
+- `pytest-xdist` (optional)
+
 ## How it works
 
 `partdiff_tester` is based on `pytest` which is a testing framework for Python.
-`pytest` [automatically picks up the tests](https://docs.python.org/3/library/unittest.html#unittest-test-discovery) contained in `test_partdiff.py` and uses `conftest.py` for configuration.
+`pytest` automatically picks up the tests contained in `test_partdiff.py`[^1] and uses `conftest.py` for configuration.
 The test cases are loaded from `test_cases.txt`; `pytest` generates the test cases automatically. The selection of test cases can be modified via the arguments `--num-threads`, `--filter`, `--shuffle`, and `--max-num-tests`.
+
+[^1]: See https://docs.python.org/3/library/unittest.html#unittest-test-discovery
 
 The output of a partdiff executable is simply compared to the output of the known good reference implementation.
 The strictness of this check is configurable via the `--strictness` argument, e.g. with `--strictness=0`, only the matrix is compared, and with `--strictness=4`, the output has to match completely (except for the actual values of runtime and memory consumption).
@@ -32,21 +38,21 @@ Example usage:
 $ uv run pytest --executable='/path/to/partdiff'
 ```
 
-Or if you have `pytest` installed:
+Of course, you can also install `pytest` and execute it directly.
 
-```shell
-$ pytest --executable='/path/to/partdiff'
-```
+We can use the [`pytest-xdist` plugin](https://pypi.org/project/pytest-xdist/) to execute the test cases in parallel. It is recommended to do so for all serial implementations, because the parallelism greatly accelerates the tests. To do this, we simply pass the `-n auto` arguments to `pytest` (special care must be taken if you want to use `--shuffle`!)
 
 The following performs a soundness check by essentially testing the reference implementation against itself. 
 
 ```shell
-$ uv run pytest --verbose --executable='reference_implementation/partdiff' --strictness=4 --valgrind
+$ uv run pytest -n auto --verbose \
+  --executable='reference_implementation/partdiff' \
+  --strictness=4 \
+  --valgrind \
+  --shuffle=$RANDOM
 ```
 
 If this fails, the tests are not correct or do not match the reference implementation.
-
-Currently, all tests are executed sequentially. On my machine, this takes about 20 seconds (without `--valgrind`). Use `--verbose` if you want to see what's going on.
 
 The test contains some custom options:
 
@@ -74,7 +80,7 @@ Custom options for test_partdiff:
                         "\\w+", "\\w+", "\\w+"]').
   --cwd=CWD             Set the working directory when launching EXECUTABLE
                         (default: $PWD).
-  --shuffle             Shuffle the test cases.
+  --shuffle=[SEED]      Shuffle the test cases.
   --allow-extra-iterations=n
                         For term=prec, allow more iterations than the (serial)
                         reference implementation would do (0 == disallow; n ==
@@ -168,7 +174,7 @@ Here, `EXECUTABLE` will be started with the parameters `8 1 0 2 2 1000`, but the
 
 Filter the tests with regex.
 
-You can pass multiple different kinds of values to pass to this argument:
+You can pass multiple different kinds of values to this argument:
 
 - Prepend `r:` to pass a single regex that has to match the space-separated list of parameters that are passed to partdiff.
   E.g. when passing `--filter='r:\w+ 1 \w+ \w+ \w+ \w+'`, only tests with Gauss-Seidel will be selected (since the second argument has to be "1").
@@ -189,6 +195,14 @@ Set the working directory of `EXECUTABLE`.
 ### `shuffle`
 
 Shuffle the test cases. Might be handy if you want to quickly test 10 random cases or so (`--shuffle --max-num-tests=10`).
+
+You can also pass an explicit seed with `--shuffle=n` for when you want deterministic yet random-looking results.
+
+> [!IMPORTANT]
+> If you want to use `pytest-xdist`'s parallelism with `--shuffle`, you **must** pass the seed. If you still want a random seed, you can use this trick:
+> ```shell
+> $ uv run pytest -n auto --executable='/path/to/partdiff' --shuffle=$RANDOM
+> ```
 
 ### `allow-extra-iterations`
 
