@@ -27,7 +27,17 @@ jobs:
         run: uv python install
 
       - name: Run small soundness check subset with valgrind
-        run: uv run pytest -n auto --verbose --executable='reference_implementation/partdiff' --strictness=4 --valgrind --max-num-tests=5
+        run: |
+          uv run pytest -n auto --verbose \
+            --executable='reference_implementation/partdiff' \
+            --strictness=4 \
+            --valgrind \
+            --shuffle=42 \
+            --max-num-tests=10
 
       - name: Run soundness check
-        run: uv run pytest -n auto --verbose --executable='reference_implementation/partdiff' --strictness=4
+        run: |
+          uv run pytest -n auto --verbose \
+            --executable='reference_implementation/partdiff' \
+            --strictness=4 \
+            --shuffle=42
