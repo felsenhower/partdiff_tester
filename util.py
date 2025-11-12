@@ -11,7 +11,15 @@ from pathlib import Path
 REFERENCE_IMPLEMENTATION_DIR = Path.cwd() / "reference_implementation"
 REFERENCE_IMPLEMENTATION_EXEC = REFERENCE_IMPLEMENTATION_DIR / "partdiff"
 
-ReferenceSource = StrEnum("ReferenceSource", ["auto", "cache", "impl"])
+
+class ReferenceSource(StrEnum):
+    AUTO = "auto"
+    CACHE = "cache"
+    IMPL = "impl"
+
+
+PartdiffParamsTuple = tuple[str, str, str, str, str, str]
+
 
 RE_MATRIX_FLOAT = re.compile(r"[01]\.[0-9]{4}")
 
@@ -155,14 +163,12 @@ RE_REF_OUTPUT_FILE = re.compile(
     re.VERBOSE | re.DOTALL,
 )
 
-partdiff_params_tuple = tuple[str, str, str, str, str, str]
 
-
-def iter_reference_output_data() -> Iterator[tuple[partdiff_params_tuple, str]]:
+def iter_reference_output_data() -> Iterator[tuple[PartdiffParamsTuple, str]]:
     """Iterate over the reference output data.
 
     Yields:
-        Iterator[tuple[partdiff_params_tuple, str]]: An iterator over the partdiff params and the corresponding output
+        Iterator[tuple[PartdiffParamsTuple, str]]: An iterator over the partdiff params and the corresponding output
             of the reference implementation.
     """
     assert REFERENCE_OUTPUT_PATH.is_dir()
@@ -175,11 +181,11 @@ def iter_reference_output_data() -> Iterator[tuple[partdiff_params_tuple, str]]:
         yield (partdiff_params, reference_output)
 
 
-def iter_test_cases() -> Iterator[partdiff_params_tuple]:
+def iter_test_cases() -> Iterator[PartdiffParamsTuple]:
     """Iterate over the test cases.
 
     Yields:
-        Iterator[partdiff_params_tuple]: An iterator over the partdiff params from the test cases.
+        Iterator[PartdiffParamsTuple]: An iterator over the partdiff params from the test cases.
     """
     with TEST_CASES_FILE_PATH.open() as f:
         for line in f:
@@ -192,21 +198,21 @@ def iter_test_cases() -> Iterator[partdiff_params_tuple]:
 
 
 @cache
-def get_test_cases() -> list[partdiff_params_tuple]:
+def get_test_cases() -> list[PartdiffParamsTuple]:
     """Get the test cases as a list.
 
     Returns:
-        list[partdiff_params_tuple]: The test cases as a list of parameter tuples.
+        list[PartdiffParamsTuple]: The test cases as a list of parameter tuples.
     """
     return list(iter_test_cases())
 
 
 @cache
-def get_reference_output_data_map() -> dict[partdiff_params_tuple, str]:
+def get_reference_output_data_map() -> dict[PartdiffParamsTuple, str]:
     """Get the reference output as a dict.
 
     Returns:
-        dict[partdiff_params_tuple, str]: A dict mapping parameter combinations to the corresponding output.
+        dict[PartdiffParamsTuple, str]: A dict mapping parameter combinations to the corresponding output.
     """
     return dict(iter_reference_output_data())
 
@@ -228,15 +234,15 @@ def ensure_reference_implementation_exists() -> None:
 
 
 def get_reference_output(
-    partdiff_params: partdiff_params_tuple,
-    reference_output_data: dict[partdiff_params_tuple, str],
+    partdiff_params: PartdiffParamsTuple,
+    reference_output_data: dict[PartdiffParamsTuple, str],
     reference_source: ReferenceSource,
 ) -> str:
     """Acquire the reference output.
 
     Args:
-        partdiff_params (partdiff_params_tuple): The parameter combination to get the output for.
-        reference_output_data (dict[partdiff_params_tuple, str]): The cached reference output.
+        partdiff_params (PartdiffParamsTuple): The parameter combination to get the output for.
+        reference_output_data (dict[PartdiffParamsTuple, str]): The cached reference output.
         reference_source (ReferenceSource): The source of the reference output (cache, impl, or auto).
 
     Raises:
@@ -246,7 +252,8 @@ def get_reference_output(
         str: The reference output for the params.
     """
     # Force the number of threads to 1:
-    partdiff_params = ("1",) + partdiff_params[1:6]
+    _num, method, lines, func, term, preciter = partdiff_params
+    partdiff_params = ("1", method, lines, func, term, preciter)
 
     def get_from_cache():
         return reference_output_data[partdiff_params]
@@ -258,11 +265,11 @@ def get_reference_output(
     assert reference_source in ReferenceSource
 
     match reference_source:
-        case ReferenceSource.auto:
+        case ReferenceSource.AUTO:
             if partdiff_params in reference_output_data:
                 return get_from_cache()
             return get_from_impl()
-        case ReferenceSource.cache:
+        case ReferenceSource.CACHE:
             if partdiff_params not in reference_output_data:
                 raise RuntimeError(
                     'Parameter combination "{}" was not found in cache'.format(
@@ -270,12 +277,14 @@ def get_reference_output(
                     )
                 )
             return get_from_cache()
-        case ReferenceSource.impl:
+        case ReferenceSource.IMPL:
             return get_from_impl()
+        case other:
+            raise ValueError(f'Unexpected ReferenceSource "{other}"')
 
 
 def get_actual_output(
-    partdiff_params: partdiff_params_tuple,
+    partdiff_params: PartdiffParamsTuple,
     partdiff_executable: list[str],
     use_valgrind: bool,
     cwd: Path | None,
@@ -283,7 +292,7 @@ def get_actual_output(
     """Get the actual output for a parameter combination.
 
     Args:
-        partdiff_params (partdiff_params_tuple): The parameter combination.
+        partdiff_params (PartdiffParamsTuple): The parameter combination.
         partdiff_executable (list[str]): The executable to run.
         use_valgrind (bool): Wether valgrind shall be used.
         cwd (Path | None): The working directory of the executable.
@@ -310,3 +319,18 @@ def check_executable_exists(executable: list[str], cwd: Path | None) -> None:
         subprocess.check_output(executable, cwd=cwd)
     except subprocess.CalledProcessError:
         pass
+
+
+def params_tuple_from_str(value: str) -> PartdiffParamsTuple:
+    """Parse a PartdiffParamsTuple from a space-separated str
+
+    Args:
+        value (str): The str to parse
+
+    Returns:
+        PartdiffParamsTuple: The parsed tuple
+    """
+    l = value.split()
+    assert len(l) == 6
+    num, method, lines, func, term, preciter = l
+    return (num, method, lines, func, term, preciter)
