@@ -303,6 +303,11 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
             ) in itertools.product(num_threads_list, test_cases)
         ]
 
+        # Interlude: Soundness check of the partdiff parameters by trying to parse each tuple.
+        for test_case in test_cases:
+            # This throws an exception if we have incorrect test cases:
+            _ = util.PartdiffParamsClass.from_tuple(test_case)
+
         # 2. Apply the filter regexes (if desired):
         test_cases = [
             test_case

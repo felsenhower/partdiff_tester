@@ -4,9 +4,11 @@ import os
 import re
 import subprocess
 from collections.abc import Iterator
-from enum import StrEnum
+from enum import Enum, StrEnum
 from functools import cache
 from pathlib import Path
+from dataclasses import dataclass
+from typing import Self
 
 REFERENCE_IMPLEMENTATION_DIR = Path.cwd() / "reference_implementation"
 REFERENCE_IMPLEMENTATION_EXEC = REFERENCE_IMPLEMENTATION_DIR / "partdiff"
@@ -19,6 +21,50 @@ class ReferenceSource(StrEnum):
 
 
 PartdiffParamsTuple = tuple[str, str, str, str, str, str]
+
+
+class MethodParam(Enum):
+    GAUSS_SEIDEL = 1
+    JACOBI = 2
+
+
+class FuncParam(Enum):
+    FZERO = 1  # gotta go fast
+    FPISIN = 2
+
+
+class TermParam(Enum):
+    PREC = 1
+    ITER = 2
+
+
+@dataclass
+class PartdiffParamsClass:
+    num: int
+    method: MethodParam
+    lines: int
+    func: FuncParam
+    term: TermParam
+    preciter: int | float
+
+    @classmethod
+    def from_tuple(cls, t: PartdiffParamsTuple) -> Self:
+        num = int(t[0])
+        assert 1 <= num <= 1024
+        method = MethodParam(int(t[1]))
+        lines = int(t[2])
+        assert 0 <= lines <= 100000
+        func = FuncParam(int(t[3]))
+        term = TermParam(int(t[4]))
+        preciter: int | float = -1
+        if term == TermParam.ITER:
+            preciter = int(t[5])
+            assert 1 <= preciter <= 200000
+        else:
+            preciter = float(t[5])
+            assert 1e-20 <= preciter <= 1e-4
+        assert preciter != -1
+        return PartdiffParamsClass(num, method, lines, func, term, preciter)
 
 
 RE_MATRIX_FLOAT = re.compile(r"[01]\.[0-9]{4}")
