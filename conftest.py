@@ -25,8 +25,9 @@ from random import shuffle
 
 import pytest
 
+import output_masks
 import util
-from util import ReferenceSource, PartdiffParamsTuple
+from util import PartdiffParamsTuple, ReferenceSource
 
 
 def shlex_list_str(value: str) -> list[str]:
@@ -189,6 +190,26 @@ def dir_path(value: str) -> Path:
     return p
 
 
+def extra_iterations(value: str) -> int:
+    """Parse a value for the --allow-extra-iterations parameter.
+
+    Args:
+        value (str): The value to parse.
+
+    Raises:
+        ValueError: When value doesn't contain an int between -1 and +inf
+
+    Returns:
+        int: The parsed int.
+    """
+    result = int(value)
+    if result < -1:
+        raise ValueError(
+            f'Illegal value for extra-iterations "{value}", must be -1, 0, or positive.'
+        )
+    return result
+
+
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
     See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_addoption
@@ -205,7 +226,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Strictness of the check (default: 1)",
         type=int,
         default=1,
-        choices=range(len(util.OUTPUT_MASKS)),
+        choices=range(output_masks.NUM_OUTPUT_MASKS),
     )
     custom_options.addoption(
         "--valgrind",
@@ -273,6 +294,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Shuffle the test cases.",
         action="store_true",
     )
+    custom_options.addoption(
+        "--allow-extra-iterations",
+        help="For term=prec, allow more iterations than the (serial) reference implementation would do (0 == disallow; n == allow n more; -1 == unlimited)",
+        metavar="n",
+        type=extra_iterations,
+        default=0,
+    )
 
 
 @pytest.fixture
@@ -331,6 +359,9 @@ def pytest_configure(config: pytest.Config) -> None:
     """
     See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_configure
     """
+    if config.getoption("executable") is None:
+        return
+
     if config.getoption("reference_source") in (
         ReferenceSource.AUTO,
         ReferenceSource.IMPL,

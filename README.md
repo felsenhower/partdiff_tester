@@ -75,6 +75,10 @@ Custom options for test_partdiff:
   --cwd=CWD             Set the working directory when launching EXECUTABLE
                         (default: $PWD).
   --shuffle             Shuffle the test cases.
+  --allow-extra-iterations=n
+                        For term=prec, allow more iterations than the (serial)
+                        reference implementation would do (0 == disallow; n ==
+                        allow n more; -1 == unlimited)
 ```
 
 The custom options are explained below.
@@ -185,3 +189,25 @@ Set the working directory of `EXECUTABLE`.
 ### `shuffle`
 
 Shuffle the test cases. Might be handy if you want to quickly test 10 random cases or so (`--shuffle --max-num-tests=10`).
+
+### `allow-extra-iterations`
+
+When choosing termination by precision, an implementation of partdiff that has been parallelized with MPI might perform more iterations than the serial reference implementation. In general, this behaviour is allowed, as long as the output (matrix and residuum) is identical to the reference implementation's output when it performs the same number of iterations.
+
+Example:
+
+When started with the parameters `1 1 0 2 1 1e-4`, the reference implementation terminates after 48 iterations with a residuum of `9.154544e-05`.
+
+With the same parameters, an `mpi-partdiff` might terminate after 50 iterations with a residuum of `6.669574e-05` (which is better).
+
+When starting the reference implementation with the parameters `1 1 0 2 2 50`, it also terminates after 50 iterations with a resiuum of `6.669574e-05`.
+
+Therefore, the `mpi-partdiff` can be considered correct.
+
+Allowed values for this parameter are:
+- `--allow-extra-iterations=0`: Do not allow extra iterations (default)
+- `--allow-extra-iterations=<n>`: Allow `n` iterations more than the serial implementation does
+- `--allow-extra-iterations=-1`: Allow an unlimited number of extra iterations
+
+> [!IMPORTANT]
+> Since `partdiff_tester` probably needs to execute the reference implementation in the described scenario, it is best to always pass `--reference-source=auto` alongside this parameter. Otherwise, the tests will likely fail.
