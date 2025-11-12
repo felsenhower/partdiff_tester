@@ -17,11 +17,12 @@ Here, we use it for the following things:
 
 import itertools
 import json
+import random
 import re
 import shlex
 import shutil
+from enum import Enum
 from pathlib import Path
-from random import shuffle
 
 import pytest
 
@@ -210,6 +211,29 @@ def extra_iterations(value: str) -> int:
     return result
 
 
+class ShuffleType(Enum):
+    """Different values for the --shuffle parameter"""
+
+    NO_SHUFFLE = 1  # --shuffle not passed
+    SHUFFLE_AUTO_SEED = 2  # --shuffle passed
+    SHUFFLE_EXPL_SEED = 3  # --shuffle=n passed
+
+
+def shuffle_type(value: str) -> tuple[ShuffleType, int | None]:
+    """Parse a shuffle type.
+
+    This method only gets called when --shuffle=n is passed.
+    Therefore it must always return (SHUFFLE_EXPL_SEED, n).
+
+    Args:
+        value (str): The str to parse.
+
+    Returns:
+        tuple[ShuffleType, int | None]: parsed shuffle type.
+    """
+    return (ShuffleType.SHUFFLE_EXPL_SEED, int(value))
+
+
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
     See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_addoption
@@ -292,7 +316,11 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     custom_options.addoption(
         "--shuffle",
         help="Shuffle the test cases.",
-        action="store_true",
+        nargs="?",
+        metavar="SEED",
+        type=shuffle_type,
+        const=(ShuffleType.SHUFFLE_AUTO_SEED, None),
+        default=(ShuffleType.NO_SHUFFLE, None),
     )
     custom_options.addoption(
         "--allow-extra-iterations",
@@ -344,8 +372,11 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
         ]
 
         # 3. Shuffle the tests (if desired):
-        if do_shuffle:
-            shuffle(test_cases)
+        if do_shuffle[0] in (
+            ShuffleType.SHUFFLE_AUTO_SEED,
+            ShuffleType.SHUFFLE_EXPL_SEED,
+        ):
+            random.shuffle(test_cases)
 
         # 4. Apply max. number of tests (if desired):
         if max_num_tests:
@@ -361,6 +392,12 @@ def pytest_configure(config: pytest.Config) -> None:
     """
     if config.getoption("executable") is None:
         return
+
+    match config.getoption("shuffle"):
+        case (ShuffleType.SHUFFLE_EXPL_SEED, seed):
+            random.seed(seed)
+        case (_, _):
+            pass
 
     if config.getoption("reference_source") in (
         ReferenceSource.AUTO,
