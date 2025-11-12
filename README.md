@@ -89,7 +89,7 @@ Custom options for test_partdiff:
 
 The custom options are explained below.
 
-> [!INFO]
+> [!NOTE]
 > Some parameters modify the set of test cases. They are applied in this order:
 > 1. `--num-threads`
 > 2. `--filter`
