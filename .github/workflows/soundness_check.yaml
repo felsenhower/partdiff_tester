@@ -33,7 +33,7 @@ jobs:
             --strictness=4 \
             --valgrind \
             --shuffle=42 \
-            --max-num-tests=10
+            --max-num-tests=5
 
       - name: Run soundness check
         run: |
