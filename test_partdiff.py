@@ -3,10 +3,64 @@
 The test is parametrized by `pytest_generate_tests` in `conftest.py` via its `test_id` argument.
 """
 
+from pathlib import Path
+
 import pytest
 
 import util
-from util import PartdiffParamsTuple
+from util import PartdiffParamsTuple, ReferenceSource, TermParam
+
+
+def _test_partdiff_term_iter(
+    reference_output_data: dict[PartdiffParamsTuple, str],
+    partdiff_params: PartdiffParamsTuple,
+    partdiff_executable: list[str],
+    strictness: int,
+    use_valgrind: bool,
+    reference_source: ReferenceSource,
+    cwd: Path | None,
+):
+    actual_output = util.get_actual_output(
+        partdiff_params, partdiff_executable, use_valgrind, cwd
+    )
+    reference_output = util.get_reference_output(
+        partdiff_params, reference_output_data, reference_source
+    )
+    re_output_mask = util.OUTPUT_MASKS[strictness]
+    m_actual = re_output_mask.match(actual_output)
+    assert m_actual is not None, (actual_output,)
+    m_expected = re_output_mask.match(reference_output)
+    assert m_expected is not None, (reference_output,)
+    assert len(m_expected.groups()) == len(m_actual.groups())
+    assert len(m_expected.groups()) > 0
+    for capture_expected, capture_actual in zip(m_expected.groups(), m_actual.groups()):
+        assert capture_expected == capture_actual
+
+
+def _test_partdiff_term_prec(
+    reference_output_data: dict[PartdiffParamsTuple, str],
+    partdiff_params: PartdiffParamsTuple,
+    partdiff_executable: list[str],
+    strictness: int,
+    use_valgrind: bool,
+    reference_source: ReferenceSource,
+    cwd: Path | None,
+):
+    actual_output = util.get_actual_output(
+        partdiff_params, partdiff_executable, use_valgrind, cwd
+    )
+    reference_output = util.get_reference_output(
+        partdiff_params, reference_output_data, reference_source
+    )
+    re_output_mask = util.OUTPUT_MASKS[strictness]
+    m_actual = re_output_mask.match(actual_output)
+    assert m_actual is not None, (actual_output,)
+    m_expected = re_output_mask.match(reference_output)
+    assert m_expected is not None, (reference_output,)
+    assert len(m_expected.groups()) == len(m_actual.groups())
+    assert len(m_expected.groups()) > 0
+    for capture_expected, capture_actual in zip(m_expected.groups(), m_actual.groups()):
+        assert capture_expected == capture_actual
 
 
 def test_partdiff_parametrized(
@@ -27,24 +81,26 @@ def test_partdiff_parametrized(
     use_valgrind = pytestconfig.getoption("valgrind")
     reference_source = pytestconfig.getoption("reference_source")
     cwd = pytestconfig.getoption("cwd")
-
-    actual_output = util.get_actual_output(
-        partdiff_params, partdiff_executable, use_valgrind, cwd
-    )
-    reference_output = util.get_reference_output(
-        partdiff_params, reference_output_data, reference_source
-    )
-
-    re_output_mask = util.OUTPUT_MASKS[strictness]
-
-    m_expected = re_output_mask.match(reference_output)
-    assert m_expected is not None, (reference_output,)
-
-    m_actual = re_output_mask.match(actual_output)
-    assert m_actual is not None, (actual_output,)
-
-    assert len(m_expected.groups()) == len(m_actual.groups())
-    assert len(m_expected.groups()) > 0
-
-    for capture_expected, capture_actual in zip(m_expected.groups(), m_actual.groups()):
-        assert capture_expected == capture_actual
+    match util.PartdiffParamsClass.from_tuple(partdiff_params).term:
+        case TermParam.PREC:
+            _test_partdiff_term_prec(
+                reference_output_data,
+                partdiff_params,
+                partdiff_executable,
+                strictness,
+                use_valgrind,
+                reference_source,
+                cwd,
+            )
+        case TermParam.ITER:
+            _test_partdiff_term_iter(
+                reference_output_data,
+                partdiff_params,
+                partdiff_executable,
+                strictness,
+                use_valgrind,
+                reference_source,
+                cwd,
+            )
+        case other:
+            raise ValueError(f'Unexpected termination condition "{other}"')
