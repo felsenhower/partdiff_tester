@@ -4,17 +4,23 @@ import os
 import re
 import subprocess
 from collections.abc import Iterator
+from dataclasses import dataclass
 from enum import Enum, StrEnum
 from functools import cache
 from pathlib import Path
-from dataclasses import dataclass
 from typing import Self
+
+import output_masks
 
 REFERENCE_IMPLEMENTATION_DIR = Path.cwd() / "reference_implementation"
 REFERENCE_IMPLEMENTATION_EXEC = REFERENCE_IMPLEMENTATION_DIR / "partdiff"
+REFERENCE_OUTPUT_PATH = Path.cwd() / "reference_output"
+TEST_CASES_FILE_PATH = Path.cwd() / "test_cases.txt"
 
 
 class ReferenceSource(StrEnum):
+    """See --reference-source"""
+
     AUTO = "auto"
     CACHE = "cache"
     IMPL = "impl"
@@ -24,22 +30,30 @@ PartdiffParamsTuple = tuple[str, str, str, str, str, str]
 
 
 class MethodParam(Enum):
+    """Enum for partdiff's method parameter"""
+
     GAUSS_SEIDEL = 1
     JACOBI = 2
 
 
 class FuncParam(Enum):
+    """Enum for partdiff's func param"""
+
     FZERO = 1  # gotta go fast
     FPISIN = 2
 
 
 class TermParam(Enum):
+    """Enum for partdiff's term param"""
+
     PREC = 1
     ITER = 2
 
 
 @dataclass
 class PartdiffParamsClass:
+    """Partdiff's params in a more accessible datastructure"""
+
     num: int
     method: MethodParam
     lines: int
@@ -49,6 +63,14 @@ class PartdiffParamsClass:
 
     @classmethod
     def from_tuple(cls, t: PartdiffParamsTuple) -> Self:
+        """Parse a PartdiffParamsClass from a PartdiffParamsTuple.
+
+        Args:
+            t (PartdiffParamsTuple): The tuple to parse.
+
+        Returns:
+            Self: The parsed PartdiffParamsClass.
+        """
         num = int(t[0])
         assert 1 <= num <= 1024
         method = MethodParam(int(t[1]))
@@ -66,132 +88,6 @@ class PartdiffParamsClass:
         assert preciter != -1
         return PartdiffParamsClass(num, method, lines, func, term, preciter)
 
-
-RE_MATRIX_FLOAT = re.compile(r"[01]\.[0-9]{4}")
-
-F = RE_MATRIX_FLOAT.pattern
-
-RE_MATRIX = re.compile(
-    rf"""
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*\n
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*\n
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*\n
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*\n
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*\n
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*\n
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*\n
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*\n
-    \s*{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s+{F}\s*
-""",
-    re.VERBOSE | re.DOTALL,
-)
-
-RE_OUTPUT_MASK_STRICT_0 = re.compile(
-    rf"""
-    ^
-    .*
-    ({RE_MATRIX.pattern})
-    .*
-    $
-""",
-    re.VERBOSE | re.DOTALL,
-)
-
-RE_OUTPUT_MASK_STRICT_1 = re.compile(
-    rf"""
-    ^
-    .*
-    ([0-9\.e+-]+)
-    \s*
-    .+:
-    ({RE_MATRIX.pattern})
-    .*
-    $
-""",
-    re.VERBOSE | re.DOTALL,
-)
-
-RE_OUTPUT_MASK_STRICT_2 = re.compile(
-    rf"""
-    ^
-    (.+): \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
-    (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
-    (.+): \s+ .+               \s*\n # Calculation method
-    (.+): \s+ ([0-9]+)         \s*\n # Interlines
-    (.+): \s+ .+               \s*\n # Pertubation function
-    (.+): \s+ .+               \s*\n # Termination
-    (.+): \s+ ([0-9]+)         \s*\n # Number of iterations       
-    (.+): \s+ ([0-9\.e+-]+)    \s*\n # Residuum
-    \s*
-    .+:
-    ({RE_MATRIX.pattern})
-    .*
-    $
-""",
-    re.VERBOSE | re.DOTALL,
-)
-
-RE_OUTPUT_MASK_STRICT_3 = re.compile(
-    rf"""
-    ^
-    Berechnungszeit:     \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time (not captured!)
-    Speicherbedarf:      \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage  (not captured!)
-    Berechnungsmethode:  \s+ (.+)             \s*\n # Calculation method
-    Interlines:          \s+ ([0-9]+)         \s*\n # Interlines
-    Stoerfunktion:       \s+ (.+)             \s*\n # Pertubation function
-    Terminierung:        \s+ (.+)             \s*\n # Termination
-    Anzahl\sIterationen: \s+ ([0-9]+)         \s*\n # Number of iterations       
-    Norm\sdes\sFehlers:  \s+ ([0-9\.e+-]+)    \s*\n # Residuum
-    \s*
-    Matrix:
-    ({RE_MATRIX.pattern})
-    .*
-    $
-""",
-    re.VERBOSE | re.DOTALL,
-)
-
-RE_OUTPUT_MASK_STRICT_4 = re.compile(
-    (
-        # fmt: off
-        r"^"
-        r"Berechnungszeit:    [0-9]+\.[0-9]{6} s\n"
-        r"Speicherbedarf:     [0-9]+\.[0-9]{6} MiB\n"
-        r"Berechnungsmethode: (.+)\n"
-        r"Interlines:         ([0-9]+)\n"
-        r"Stoerfunktion:      (.+)\n"
-        r"Terminierung:       (.+)\n"
-        r"Anzahl Iterationen: ([0-9]+)\n"
-        r"Norm des Fehlers:   ([0-9\.e+-]+)\n"
-        r"\n"
-        r"Matrix:\n"
-        r"("
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        r")$"
-        # fmt: on
-    ),
-    re.DOTALL,
-)
-
-
-OUTPUT_MASKS = [
-    RE_OUTPUT_MASK_STRICT_0,
-    RE_OUTPUT_MASK_STRICT_1,
-    RE_OUTPUT_MASK_STRICT_2,
-    RE_OUTPUT_MASK_STRICT_3,
-    RE_OUTPUT_MASK_STRICT_4,
-]
-
-REFERENCE_OUTPUT_PATH = Path.cwd() / "reference_output"
-TEST_CASES_FILE_PATH = Path.cwd() / "test_cases.txt"
 
 RE_REF_OUTPUT_FILE = re.compile(
     r"""
@@ -318,7 +214,7 @@ def get_reference_output(
         case ReferenceSource.CACHE:
             if partdiff_params not in reference_output_data:
                 raise RuntimeError(
-                    'Parameter combination "{}" was not found in cache'.format(
+                    'Parameter combination "{}" was not found in cache. Run with "--reference-source=auto" to fix this.'.format(
                         " ".join(partdiff_params)
                     )
                 )
@@ -380,3 +276,18 @@ def params_tuple_from_str(value: str) -> PartdiffParamsTuple:
     assert len(l) == 6
     num, method, lines, func, term, preciter = l
     return (num, method, lines, func, term, preciter)
+
+
+def parse_num_iterations_from_partdiff_output(output: str) -> int:
+    """Parse the number of iterations from partdiff's output.
+
+    Args:
+        output (str): The partdiff output to parse.
+
+    Returns:
+        int: The parsed iterations.
+    """
+    m = output_masks.RE_OUTPUT_MASK_FOR_ITERATIONS.match(output)
+    assert m is not None
+    assert len(m.groups()) == 1
+    return int(m.groups()[0])
