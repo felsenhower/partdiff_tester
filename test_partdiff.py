@@ -6,24 +6,22 @@ The test is parametrized by `pytest_generate_tests` in `conftest.py` via its `te
 import pytest
 
 import util
-from util import ReferenceSource, partdiff_params_tuple
+from util import PartdiffParamsTuple
 
 
 def test_partdiff_parametrized(
     pytestconfig: pytest.Config,
-    reference_output_data: dict[partdiff_params_tuple, str],
+    reference_output_data: dict[PartdiffParamsTuple, str],
     test_id: str,
 ) -> None:
     """Test if the output of a partdiff implementation matches the output of the reference implementation.
 
     Args:
         pytestconfig (pytest.Config): See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytestconfig
-        reference_output_data (dict[partdiff_params_tuple, str]): The cached reference output data
+        reference_output_data (dict[PartdiffParamsTuple, str]): The cached reference output data
         test_id (str): The parameters to test as a space-separated string (not a tuple because a str prints better).
     """
-    partdiff_params = tuple(test_id.split())
-    assert len(partdiff_params) == 6
-
+    partdiff_params = util.params_tuple_from_str(test_id)
     partdiff_executable = pytestconfig.getoption("executable")
     strictness = pytestconfig.getoption("strictness")
     use_valgrind = pytestconfig.getoption("valgrind")

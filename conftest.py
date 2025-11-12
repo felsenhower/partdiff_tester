@@ -26,7 +26,7 @@ from random import shuffle
 import pytest
 
 import util
-from util import ReferenceSource, partdiff_params_tuple
+from util import ReferenceSource, PartdiffParamsTuple
 
 
 def shlex_list_str(value: str) -> list[str]:
@@ -170,6 +170,17 @@ def partdiff_params_filter_regex(value: str) -> re.Pattern:
 
 
 def dir_path(value: str) -> Path:
+    """Parse a directory Path from a str.
+
+    Args:
+        value (str): The str to parse.
+
+    Raises:
+        ValueError: When the given value does not exist or is not a directory.
+
+    Returns:
+        Path: The parsed path.
+    """
     p = Path(value)
     if not p.exists():
         raise ValueError(f'Path "{value}" does not exist.')
@@ -217,7 +228,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
             "auto == try cache and fall back to impl)."
         ),
         type=reference_source_param,
-        default=ReferenceSource.cache,
+        default=ReferenceSource.CACHE,
         choices=ReferenceSource,
     )
     custom_options.addoption(
@@ -265,7 +276,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 @pytest.fixture
-def reference_output_data() -> dict[partdiff_params_tuple, str]:
+def reference_output_data() -> dict[PartdiffParamsTuple, str]:
     """
     See util.get_reference_output_data_map()
     """
@@ -316,8 +327,8 @@ def pytest_configure(config: pytest.Config) -> None:
     See https://docs.pytest.org/en/7.1.x/reference/reference.html#pytest.hookspec.pytest_configure
     """
     if config.getoption("reference_source") in (
-        ReferenceSource.auto,
-        ReferenceSource.impl,
+        ReferenceSource.AUTO,
+        ReferenceSource.IMPL,
     ):
         util.ensure_reference_implementation_exists()
 
