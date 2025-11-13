@@ -69,7 +69,7 @@ def test_partdiff_parametrized(
     reference_output = util.get_reference_output(
         partdiff_params, reference_output_data, reference_source
     )
-    if util.PartdiffParamsClass.from_tuple(partdiff_params).term == TermParam.PREC:
+    if util.PartdiffParamsClass.from_tuple(partdiff_params).term == TermParam.ACC:
         if allow_extra_iterations != 0:
             actual_iterations = util.parse_num_iterations_from_partdiff_output(
                 actual_output
@@ -88,7 +88,7 @@ def test_partdiff_parametrized(
                     OUTPUT_MASKS_ALLOW_EXTRA_ITER[strictness],
                 )
                 # Force termination condition "iterations"
-                num, method, lines, func, _term, _preciter = partdiff_params
+                num, method, lines, func, _term, _acc_iter = partdiff_params
                 partdiff_params = (
                     num,
                     method,

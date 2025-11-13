@@ -145,7 +145,7 @@ def partdiff_params_filter_regex(value: str) -> re.Pattern:
                 raise ValueError("Object key not a str.")
             if not isinstance(v, str):
                 raise ValueError("Object value not a str.")
-        allowed_params = ("num", "method", "lines", "func", "term", "prec/iter")
+        allowed_params = ("num", "method", "lines", "func", "term", "acc/iter")
         if not set(j.keys()).issubset(allowed_params):
             raise ValueError("Invalid params.")
         try:
@@ -324,7 +324,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
     custom_options.addoption(
         "--allow-extra-iterations",
-        help="For term=prec, allow more iterations than the (serial) reference implementation would do (0 == disallow; n == allow n more; -1 == unlimited)",
+        help="For term=acc, allow more iterations than the (serial) reference implementation would do (0 == disallow; n == allow n more; -1 == unlimited)",
         metavar="n",
         type=extra_iterations,
         default=0,
@@ -352,10 +352,10 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 
         # 1. Apply the selected number of threads:
         test_cases = [
-            (str(num), method, lines, func, term, preciter)
+            (str(num), method, lines, func, term, acc_iter)
             for (
                 num,
-                (_old_num, method, lines, func, term, preciter),
+                (_old_num, method, lines, func, term, acc_iter),
             ) in itertools.product(num_threads_list, test_cases)
         ]
 

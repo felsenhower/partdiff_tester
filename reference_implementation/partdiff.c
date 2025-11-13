@@ -49,7 +49,7 @@
 #define METH_JACOBI       2
 #define FUNC_F0           1
 #define FUNC_FPISIN       2
-#define TERM_PREC         1
+#define TERM_ACC          1
 #define TERM_ITER         2
 
 struct calculation_arguments
@@ -64,7 +64,7 @@ struct calculation_results
 {
 	uint64_t m;
 	uint64_t stat_iteration; /* number of current iteration */
-	double   stat_precision; /* actual precision of all slaves in iteration */
+	double   stat_accuracy;  /* actual accuracy of all slaves in iteration */
 };
 
 struct options
@@ -75,7 +75,7 @@ struct options
 	uint64_t inf_func;       /* inference function */
 	uint64_t termination;    /* termination condition */
 	uint64_t term_iteration; /* terminate if iteration number reached */
-	double   term_precision; /* terminate if precision reached */
+	double   term_accuracy;  /* terminate if accuracy reached */
 };
 
 /* ************************************************************************ */
@@ -89,7 +89,7 @@ struct timeval comp_time;  /* time when calculation completed */
 static void
 usage(char* name)
 {
-	printf("Usage: %s [num] [method] [lines] [func] [term] [prec/iter]\n", name);
+	printf("Usage: %s [num] [method] [lines] [func] [term] [acc/iter]\n", name);
 	printf("\n");
 	printf("  - num:       number of threads (1 .. %d)\n", MAX_THREADS);
 	printf("  - method:    calculation method (1 .. 2)\n");
@@ -101,10 +101,10 @@ usage(char* name)
 	printf("                 %1d: f(x,y) = 0\n", FUNC_F0);
 	printf("                 %1d: f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)\n", FUNC_FPISIN);
 	printf("  - term:      termination condition ( 1.. 2)\n");
-	printf("                 %1d: sufficient precision\n", TERM_PREC);
+	printf("                 %1d: sufficient accuracy\n", TERM_ACC);
 	printf("                 %1d: number of iterations\n", TERM_ITER);
-	printf("  - prec/iter: depending on term:\n");
-	printf("                 precision:  1e-4 .. 1e-20\n");
+	printf("  - acc/iter:  depending on term:\n");
+	printf("                 accuracy:   1e-4 .. 1e-20\n");
 	printf("                 iterations:    1 .. %d\n", MAX_ITERATION);
 	printf("\n");
 	printf("Example: %s 1 2 100 1 2 100 \n", name);
@@ -155,19 +155,19 @@ askParams(struct options* options, int argc, char** argv)
 
 	ret = sscanf(argv[5], "%" SCNu64, &(options->termination));
 
-	if (ret != 1 || !(options->termination == TERM_PREC || options->termination == TERM_ITER))
+	if (ret != 1 || !(options->termination == TERM_ACC || options->termination == TERM_ITER))
 	{
 		usage(argv[0]);
 		exit(1);
 	}
 
-	if (options->termination == TERM_PREC)
+	if (options->termination == TERM_ACC)
 	{
-		ret = sscanf(argv[6], "%lf", &(options->term_precision));
+		ret = sscanf(argv[6], "%lf", &(options->term_accuracy));
 
 		options->term_iteration = MAX_ITERATION;
 
-		if (ret != 1 || !(options->term_precision >= 1e-20 && options->term_precision <= 1e-4))
+		if (ret != 1 || !(options->term_accuracy >= 1e-20 && options->term_accuracy <= 1e-4))
 		{
 			usage(argv[0]);
 			exit(1);
@@ -177,7 +177,7 @@ askParams(struct options* options, int argc, char** argv)
 	{
 		ret = sscanf(argv[6], "%" SCNu64, &(options->term_iteration));
 
-		options->term_precision = 0;
+		options->term_accuracy = 0;
 
 		if (ret != 1 || !(options->term_iteration >= 1 && options->term_iteration <= MAX_ITERATION))
 		{
@@ -199,7 +199,7 @@ initVariables(struct calculation_arguments* arguments, struct calculation_result
 
 	results->m              = 0;
 	results->stat_iteration = 0;
-	results->stat_precision = 0;
+	results->stat_accuracy  = 0;
 }
 
 /* ************************************************************************ */
@@ -222,7 +222,7 @@ allocateMemory(size_t size)
 
 	if ((p = malloc(size)) == NULL)
 	{
-		printf("Speicherprobleme! (%" PRIu64 " Bytes angefordert)\n", size);
+		printf("Memory error! (%" PRIu64 " Bytes requested)\n", size);
 		exit(1);
 	}
 
@@ -251,7 +251,7 @@ initMatrices(struct calculation_arguments* arguments, struct options const* opti
 	uint64_t const N = arguments->N;
 	double const   h = arguments->h;
 
-	typedef double(*matrix)[N + 1][N + 1];
+	typedef double (*matrix)[N + 1][N + 1];
 
 	matrix Matrix = (matrix)arguments->M;
 
@@ -306,7 +306,7 @@ calculate(struct calculation_arguments const* arguments, struct calculation_resu
 
 	int term_iteration = options->term_iteration;
 
-	typedef double(*matrix)[N + 1][N + 1];
+	typedef double (*matrix)[N + 1][N + 1];
 
 	matrix Matrix = (matrix)arguments->M;
 
@@ -352,7 +352,7 @@ calculate(struct calculation_arguments const* arguments, struct calculation_resu
 					star += fpisin_i * sin(pih * (double)j);
 				}
 
-				if (options->termination == TERM_PREC || term_iteration == 1)
+				if (options->termination == TERM_ACC || term_iteration == 1)
 				{
 					residuum    = Matrix[m2][i][j] - star;
 					residuum    = fabs(residuum);
@@ -364,7 +364,7 @@ calculate(struct calculation_arguments const* arguments, struct calculation_resu
 		}
 
 		results->stat_iteration++;
-		results->stat_precision = maxresiduum;
+		results->stat_accuracy = maxresiduum;
 
 		/* exchange m1 and m2 */
 		i  = m1;
@@ -372,9 +372,9 @@ calculate(struct calculation_arguments const* arguments, struct calculation_resu
 		m2 = i;
 
 		/* check for stopping calculation depending on termination method */
-		if (options->termination == TERM_PREC)
+		if (options->termination == TERM_ACC)
 		{
-			if (maxresiduum < options->term_precision)
+			if (maxresiduum < options->term_accuracy)
 			{
 				term_iteration = 0;
 			}
@@ -397,9 +397,9 @@ displayStatistics(struct calculation_arguments const* arguments, struct calculat
 	int    N    = arguments->N;
 	double time = (comp_time.tv_sec - start_time.tv_sec) + (comp_time.tv_usec - start_time.tv_usec) * 1e-6;
 
-	printf("Berechnungszeit:    %f s\n", time);
-	printf("Speicherbedarf:     %f MiB\n", (N + 1) * (N + 1) * sizeof(double) * arguments->num_matrices / 1024.0 / 1024.0);
-	printf("Berechnungsmethode: ");
+	printf("Calculation time:   %f s\n", time);
+	printf("Memory usage:       %f MiB\n", (N + 1) * (N + 1) * sizeof(double) * arguments->num_matrices / 1024.0 / 1024.0);
+	printf("Calculation method: ");
 
 	if (options->method == METH_GAUSS_SEIDEL)
 	{
@@ -412,7 +412,7 @@ displayStatistics(struct calculation_arguments const* arguments, struct calculat
 
 	printf("\n");
 	printf("Interlines:         %" PRIu64 "\n", options->interlines);
-	printf("Stoerfunktion:      ");
+	printf("Inference function: ");
 
 	if (options->inf_func == FUNC_F0)
 	{
@@ -424,32 +424,32 @@ displayStatistics(struct calculation_arguments const* arguments, struct calculat
 	}
 
 	printf("\n");
-	printf("Terminierung:       ");
+	printf("Termination:        ");
 
-	if (options->termination == TERM_PREC)
+	if (options->termination == TERM_ACC)
 	{
-		printf("Hinreichende Genaugkeit");
+		printf("Required accuracy");
 	}
 	else if (options->termination == TERM_ITER)
 	{
-		printf("Anzahl der Iterationen");
+		printf("Number of iterations");
 	}
 
 	printf("\n");
-	printf("Anzahl Iterationen: %" PRIu64 "\n", results->stat_iteration);
-	printf("Norm des Fehlers:   %e\n", results->stat_precision);
+	printf("Number iterations:  %" PRIu64 "\n", results->stat_iteration);
+	printf("Residuum:           %e\n", results->stat_accuracy);
 	printf("\n");
 }
 
 /****************************************************************************/
-/** Beschreibung der Funktion displayMatrix:                               **/
+/** Explanation of the displayMatrix function:                             **/
 /**                                                                        **/
-/** Die Funktion displayMatrix gibt eine Matrix                            **/
-/** in einer "ubersichtlichen Art und Weise auf die Standardausgabe aus.   **/
+/** The function displayMatrix outputs a Matrix                            **/
+/** in a humanly readable way.                                             **/
 /**                                                                        **/
-/** Die "Ubersichtlichkeit wird erreicht, indem nur ein Teil der Matrix    **/
-/** ausgegeben wird. Aus der Matrix werden die Randzeilen/-spalten sowie   **/
-/** sieben Zwischenzeilen ausgegeben.                                      **/
+/** This is achieved by only printing parts of the matrix.                 **/
+/** From the matrix the first and last lines/columns and seven in between  **/
+/** rows/cols are printed out.                                             **/
 /****************************************************************************/
 static void
 displayMatrix(struct calculation_arguments* arguments, struct calculation_results* results, struct options* options)
@@ -459,7 +459,7 @@ displayMatrix(struct calculation_arguments* arguments, struct calculation_result
 	int const interlines = options->interlines;
 	int const N          = arguments->N;
 
-	typedef double(*matrix)[N + 1][N + 1];
+	typedef double (*matrix)[N + 1][N + 1];
 
 	matrix Matrix = (matrix)arguments->M;
 

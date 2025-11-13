@@ -1,11 +1,11 @@
-Berechnungszeit:    0.000571 s
-Speicherbedarf:     0.002205 MiB
-Berechnungsmethode: Gauß-Seidel
+Calculation time:   0.000843 s
+Memory usage:       0.002205 MiB
+Calculation method: Gauß-Seidel
 Interlines:         1
-Stoerfunktion:      f(x,y) = 0
-Terminierung:       Hinreichende Genaugkeit
-Anzahl Iterationen: 944
-Norm des Fehlers:   0.000000e+00
+Inference function: f(x,y) = 0
+Termination:        Required accuracy
+Number iterations:  944
+Residuum:           0.000000e+00
 
 Matrix:
  1.0000 0.8750 0.7500 0.6250 0.5000 0.3750 0.2500 0.1250 0.0000

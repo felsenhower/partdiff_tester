@@ -1,11 +1,11 @@
-Berechnungszeit:    0.000007 s
-Speicherbedarf:     0.002205 MiB
-Berechnungsmethode: Gauß-Seidel
+Calculation time:   0.000011 s
+Memory usage:       0.002205 MiB
+Calculation method: Gauß-Seidel
 Interlines:         1
-Stoerfunktion:      f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)
-Terminierung:       Anzahl der Iterationen
-Anzahl Iterationen: 1
-Norm des Fehlers:   3.715864e-02
+Inference function: f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)
+Termination:        Number of iterations
+Number iterations:  1
+Residuum:           3.715864e-02
 
 Matrix:
  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000

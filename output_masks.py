@@ -65,9 +65,9 @@ RE_OUTPUT_MASK_STRICT_2 = re.compile(
     (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
     (.+): \s+ .+               \s*\n # Calculation method
     (.+): \s+ ([0-9]+)         \s*\n # Interlines
-    (.+): \s+ .+               \s*\n # Pertubation function
+    (.+): \s+ .+               \s*\n # Inference function
     (.+): \s+ .+               \s*\n # Termination
-    (.+): \s+ ([0-9]+)         \s*\n # Number of iterations
+    (.+): \s+ ([0-9]+)         \s*\n # Number iterations
     (.+): \s+ ([0-9\.e+-]+)    \s*\n # Residuum
     \s*
     .+:
@@ -81,14 +81,14 @@ RE_OUTPUT_MASK_STRICT_2 = re.compile(
 RE_OUTPUT_MASK_STRICT_3 = re.compile(
     rf"""
     ^
-    Berechnungszeit:     \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time (not captured!)
-    Speicherbedarf:      \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage  (not captured!)
-    Berechnungsmethode:  \s+ (.+)             \s*\n # Calculation method
+    Calculation\stime:   \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
+    Memory\susage:       \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    Calculation\smethod: \s+ (.+)             \s*\n # Calculation method
     Interlines:          \s+ ([0-9]+)         \s*\n # Interlines
-    Stoerfunktion:       \s+ (.+)             \s*\n # Pertubation function
-    Terminierung:        \s+ (.+)             \s*\n # Termination
-    Anzahl\sIterationen: \s+ ([0-9]+)         \s*\n # Number of iterations
-    Norm\sdes\sFehlers:  \s+ ([0-9\.e+-]+)    \s*\n # Residuum
+    Inference\sfunction: \s+ (.+)             \s*\n # Inference function
+    Termination:         \s+ (.+)             \s*\n # Termination
+    Number\siterations:  \s+ ([0-9]+)         \s*\n # Number iterations
+    Residuum:            \s+ ([0-9\.e+-]+)    \s*\n # Residuum
     \s*
     Matrix:
     ({RE_MATRIX.pattern})
@@ -102,14 +102,14 @@ RE_OUTPUT_MASK_STRICT_4 = re.compile(
     (
         # fmt: off
         r"^"
-        r"Berechnungszeit:    [0-9]+\.[0-9]{6} s\n"
-        r"Speicherbedarf:     [0-9]+\.[0-9]{6} MiB\n"
-        r"Berechnungsmethode: (.+)\n"
+        r"Calculation time:   [0-9]+\.[0-9]{6} s\n"
+        r"Memory usage:       [0-9]+\.[0-9]{6} MiB\n"
+        r"Calculation method: (.+)\n"
         r"Interlines:         ([0-9]+)\n"
-        r"Stoerfunktion:      (.+)\n"
-        r"Terminierung:       (.+)\n"
-        r"Anzahl Iterationen: ([0-9]+)\n"
-        r"Norm des Fehlers:   ([0-9\.e+-]+)\n"
+        r"Inference function: (.+)\n"
+        r"Termination:        (.+)\n"
+        r"Number iterations:  ([0-9]+)\n"
+        r"Residuum:           ([0-9\.e+-]+)\n"
         r"\n"
         r"Matrix:\n"
         r"("
@@ -161,9 +161,9 @@ RE_OUTPUT_MASK_STRICT_2_ALLOW_EXTRA_ITER = re.compile(
     (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
     (.+): \s+ .+               \s*\n # Calculation method
     (.+): \s+ ([0-9]+)         \s*\n # Interlines
-    (.+): \s+ .+               \s*\n # Pertubation function
+    (.+): \s+ .+               \s*\n # Inference function
     (.+): \s+ .+               \s*\n # Termination
-    (.+): \s+ [0-9]+           \s*\n # Number of iterations
+    (.+): \s+ [0-9]+           \s*\n # Number iterations
     (.+): \s+ [0-9\.e+-]+      \s*\n # Residuum
     \s*
     .+:
@@ -177,14 +177,14 @@ RE_OUTPUT_MASK_STRICT_2_ALLOW_EXTRA_ITER = re.compile(
 RE_OUTPUT_MASK_STRICT_3_ALLOW_EXTRA_ITER = re.compile(
     rf"""
     ^
-    Berechnungszeit:     \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time (not captured!)
-    Speicherbedarf:      \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage  (not captured!)
-    Berechnungsmethode:  \s+ (.+)             \s*\n # Calculation method
+    Calculation\stime:   \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
+    Memory\susage:       \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    Calculation\smethod: \s+ (.+)             \s*\n # Calculation method
     Interlines:          \s+ ([0-9]+)         \s*\n # Interlines
-    Stoerfunktion:       \s+ (.+)             \s*\n # Pertubation function
-    Terminierung:        \s+ (.+)             \s*\n # Termination
-    Anzahl\sIterationen: \s+ [0-9]+           \s*\n # Number of iterations
-    Norm\sdes\sFehlers:  \s+ [0-9\.e+-]+      \s*\n # Residuum
+    Inference\sfunction: \s+ (.+)             \s*\n # Inference function
+    Termination:         \s+ (.+)             \s*\n # Termination
+    Number\siterations:  \s+ [0-9]+           \s*\n # Number iterations
+    Residuum:            \s+ [0-9\.e+-]+      \s*\n # Residuum
     \s*
     Matrix:
     {RE_MATRIX.pattern}
@@ -198,14 +198,14 @@ RE_OUTPUT_MASK_STRICT_4_ALLOW_EXTRA_ITER = re.compile(
     (
         # fmt: off
         r"^"
-        r"Berechnungszeit:    [0-9]+\.[0-9]{6} s\n"
-        r"Speicherbedarf:     [0-9]+\.[0-9]{6} MiB\n"
-        r"Berechnungsmethode: (.+)\n"
+        r"Calculation time:   [0-9]+\.[0-9]{6} s\n"
+        r"Memory usage:       [0-9]+\.[0-9]{6} MiB\n"
+        r"Calculation method: (.+)\n"
         r"Interlines:         ([0-9]+)\n"
-        r"Stoerfunktion:      (.+)\n"
-        r"Terminierung:       (.+)\n"
-        r"Anzahl Iterationen: [0-9]+\n"
-        r"Norm des Fehlers:   [0-9\.e+-]+\n"
+        r"Inference function: (.+)\n"
+        r"Termination:        (.+)\n"
+        r"Number iterations:  [0-9]+\n"
+        r"Residuum:           [0-9\.e+-]+\n"
         r"\n"
         r"Matrix:\n"
         rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
@@ -233,14 +233,14 @@ RE_OUTPUT_MASK_STRICT_2_WITH_EXTRA_ITER = RE_OUTPUT_MASK_STRICT_2
 RE_OUTPUT_MASK_STRICT_3_WITH_EXTRA_ITER = re.compile(
     rf"""
     ^
-    Berechnungszeit:     \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time (not captured!)
-    Speicherbedarf:      \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage  (not captured!)
-    Berechnungsmethode:  \s+ (.+)             \s*\n # Calculation method
+    Calculation\stime:   \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
+    Memory\susage:       \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    Calculation\smethod: \s+ (.+)             \s*\n # Calculation method
     Interlines:          \s+ ([0-9]+)         \s*\n # Interlines
-    Stoerfunktion:       \s+ (.+)             \s*\n # Pertubation function
-    Terminierung:        \s+ .+               \s*\n # Termination
-    Anzahl\sIterationen: \s+ ([0-9]+)         \s*\n # Number of iterations
-    Norm\sdes\sFehlers:  \s+ ([0-9\.e+-]+)    \s*\n # Residuum
+    Inference\sfunction: \s+ (.+)             \s*\n # Inference function
+    Termination:         \s+ .+               \s*\n # Termination
+    Number\siterations:  \s+ ([0-9]+)         \s*\n # Number iterations
+    Residuum:            \s+ ([0-9\.e+-]+)    \s*\n # Residuum
     \s*
     Matrix:
     ({RE_MATRIX.pattern})
@@ -254,14 +254,14 @@ RE_OUTPUT_MASK_STRICT_4_WITH_EXTRA_ITER = re.compile(
     (
         # fmt: off
         r"^"
-        r"Berechnungszeit:    [0-9]+\.[0-9]{6} s\n"
-        r"Speicherbedarf:     [0-9]+\.[0-9]{6} MiB\n"
-        r"Berechnungsmethode: (.+)\n"
+        r"Calculation time:   [0-9]+\.[0-9]{6} s\n"
+        r"Memory usage:       [0-9]+\.[0-9]{6} MiB\n"
+        r"Calculation method: (.+)\n"
         r"Interlines:         ([0-9]+)\n"
-        r"Stoerfunktion:      (.+)\n"
-        r"Terminierung:       .+\n"
-        r"Anzahl Iterationen: ([0-9]+)\n"
-        r"Norm des Fehlers:   ([0-9\.e+-]+)\n"
+        r"Inference function: (.+)\n"
+        r"Termination:        .+\n"
+        r"Number iterations:  ([0-9]+)\n"
+        r"Residuum:           ([0-9\.e+-]+)\n"
         r"\n"
         r"Matrix:\n"
         r"("

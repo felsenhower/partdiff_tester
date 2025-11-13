@@ -1,11 +1,11 @@
-Berechnungszeit:    0.533091 s
-Speicherbedarf:     978.761002 MiB
-Berechnungsmethode: Jacobi
+Calculation time:   0.371060 s
+Memory usage:       978.761002 MiB
+Calculation method: Jacobi
 Interlines:         1000
-Stoerfunktion:      f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)
-Terminierung:       Anzahl der Iterationen
-Anzahl Iterationen: 1
-Norm des Fehlers:   7.695230e-08
+Inference function: f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)
+Termination:        Number of iterations
+Number iterations:  1
+Residuum:           7.695230e-08
 
 Matrix:
  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000

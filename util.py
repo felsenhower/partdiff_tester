@@ -46,7 +46,7 @@ class FuncParam(Enum):
 class TermParam(Enum):
     """Enum for partdiff's term param"""
 
-    PREC = 1
+    ACC = 1
     ITER = 2
 
 
@@ -59,7 +59,7 @@ class PartdiffParamsClass:
     lines: int
     func: FuncParam
     term: TermParam
-    preciter: int | float
+    acc_iter: int | float
 
     @classmethod
     def from_tuple(cls, t: PartdiffParamsTuple) -> Self:
@@ -78,15 +78,15 @@ class PartdiffParamsClass:
         assert 0 <= lines <= 100000
         func = FuncParam(int(t[3]))
         term = TermParam(int(t[4]))
-        preciter: int | float = -1
+        acc_iter: int | float = -1
         if term == TermParam.ITER:
-            preciter = int(t[5])
-            assert 1 <= preciter <= 200000
+            acc_iter = int(t[5])
+            assert 1 <= acc_iter <= 200000
         else:
-            preciter = float(t[5])
-            assert 1e-20 <= preciter <= 1e-4
-        assert preciter != -1
-        return PartdiffParamsClass(num, method, lines, func, term, preciter)
+            acc_iter = float(t[5])
+            assert 1e-20 <= acc_iter <= 1e-4
+        assert acc_iter != -1
+        return PartdiffParamsClass(num, method, lines, func, term, acc_iter)
 
 
 RE_REF_OUTPUT_FILE = re.compile(
@@ -98,7 +98,7 @@ RE_REF_OUTPUT_FILE = re.compile(
     _([0-9]+)   # lines  (0..100000)
     _([12])     # func (1..2)
     _([12])     # term (1..2)
-    _([0-9e-]+) # prec/iter (1e-4..1e-20 or 1..200000)
+    _([0-9e-]+) # acc/iter (1e-4..1e-20 or 1..200000)
     \.txt
     $
 """,
@@ -194,8 +194,8 @@ def get_reference_output(
         str: The reference output for the params.
     """
     # Force the number of threads to 1:
-    _num, method, lines, func, term, preciter = partdiff_params
-    partdiff_params = ("1", method, lines, func, term, preciter)
+    _num, method, lines, func, term, acc_iter = partdiff_params
+    partdiff_params = ("1", method, lines, func, term, acc_iter)
 
     def get_from_cache():
         return reference_output_data[partdiff_params]
@@ -274,8 +274,8 @@ def params_tuple_from_str(value: str) -> PartdiffParamsTuple:
     """
     l = value.split()
     assert len(l) == 6
-    num, method, lines, func, term, preciter = l
-    return (num, method, lines, func, term, preciter)
+    num, method, lines, func, term, acc_iter = l
+    return (num, method, lines, func, term, acc_iter)
 
 
 def parse_num_iterations_from_partdiff_output(output: str) -> int:

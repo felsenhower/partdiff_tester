@@ -1,11 +1,11 @@
-Berechnungszeit:    0.355796 s
-Speicherbedarf:     0.120865 MiB
-Berechnungsmethode: Jacobi
+Calculation time:   0.386933 s
+Memory usage:       0.120865 MiB
+Calculation method: Jacobi
 Interlines:         10
-Stoerfunktion:      f(x,y) = 0
-Terminierung:       Hinreichende Genaugkeit
-Anzahl Iterationen: 48009
-Norm des Fehlers:   5.551115e-17
+Inference function: f(x,y) = 0
+Termination:        Required accuracy
+Number iterations:  48009
+Residuum:           5.551115e-17
 
 Matrix:
  1.0000 0.8750 0.7500 0.6250 0.5000 0.3750 0.2500 0.1250 0.0000
