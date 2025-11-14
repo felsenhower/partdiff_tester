@@ -1,11 +1,11 @@
-Calculation time:   0.573158 s
-Memory usage:       978.761002 MiB
-Calculation method: Jacobi
-Interlines:         1000
-Inference function: f(x,y) = 0
-Termination:        Number of iterations
-Number iterations:  10
-Residuum:           3.531129e-02
+Calculation time:       0.570958 s
+Memory usage:           978.761002 MiB
+Calculation method:     Jacobi
+Interlines:             1000
+Perturbation function:  f(x,y) = 0
+Termination:            Number of iterations
+Number of iterations:   10
+Residuum:               3.531129e-02
 
 Matrix:
  1.0000 0.8750 0.7500 0.6250 0.5000 0.3750 0.2500 0.1250 0.0000

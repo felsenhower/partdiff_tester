@@ -1,11 +1,11 @@
-Calculation time:   0.385306 s
-Memory usage:       0.060432 MiB
-Calculation method: Gauß-Seidel
-Interlines:         10
-Inference function: f(x,y) = 0
-Termination:        Required accuracy
-Number iterations:  16284
-Residuum:           9.992007e-13
+Calculation time:       0.387273 s
+Memory usage:           0.060432 MiB
+Calculation method:     Gauß-Seidel
+Interlines:             10
+Perturbation function:  f(x,y) = 0
+Termination:            Required accuracy
+Number of iterations:   16284
+Residuum:               9.992007e-13
 
 Matrix:
  1.0000 0.8750 0.7500 0.6250 0.5000 0.3750 0.2500 0.1250 0.0000

@@ -1,11 +1,11 @@
-Calculation time:   0.023943 s
-Memory usage:       0.004410 MiB
-Calculation method: Jacobi
-Interlines:         1
-Inference function: f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)
-Termination:        Number of iterations
-Number iterations:  10000
-Residuum:           0.000000e+00
+Calculation time:       0.018495 s
+Memory usage:           0.004410 MiB
+Calculation method:     Jacobi
+Interlines:             1
+Perturbation function:  f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)
+Termination:            Number of iterations
+Number of iterations:   10000
+Residuum:               0.000000e+00
 
 Matrix:
  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000

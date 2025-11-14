@@ -1,11 +1,11 @@
-Calculation time:   0.000011 s
-Memory usage:       0.002205 MiB
-Calculation method: Gauß-Seidel
-Interlines:         1
-Inference function: f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)
-Termination:        Number of iterations
-Number iterations:  1
-Residuum:           3.715864e-02
+Calculation time:       0.000015 s
+Memory usage:           0.002205 MiB
+Calculation method:     Gauß-Seidel
+Interlines:             1
+Perturbation function:  f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)
+Termination:            Number of iterations
+Number of iterations:   1
+Residuum:               3.715864e-02
 
 Matrix:
  0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000

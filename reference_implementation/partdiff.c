@@ -72,7 +72,7 @@ struct options
 	uint64_t number;         /* Number of threads */
 	uint64_t method;         /* Gauss Seidel or Jacobi method of iteration */
 	uint64_t interlines;     /* matrix size = interlines*8+9 */
-	uint64_t inf_func;       /* inference function */
+	uint64_t pert_func;      /* perturbation function */
 	uint64_t termination;    /* termination condition */
 	uint64_t term_iteration; /* terminate if iteration number reached */
 	double   term_accuracy;  /* terminate if accuracy reached */
@@ -97,10 +97,10 @@ usage(char* name)
 	printf("                 %1d: Jacobi\n", METH_JACOBI);
 	printf("  - lines:     number of interlines (0 .. %d)\n", MAX_INTERLINES);
 	printf("                 matrixsize = (interlines * 8) + 9\n");
-	printf("  - func:      interference function (1 .. 2)\n");
+	printf("  - func:      perturbation function (1 .. 2)\n");
 	printf("                 %1d: f(x,y) = 0\n", FUNC_F0);
 	printf("                 %1d: f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)\n", FUNC_FPISIN);
-	printf("  - term:      termination condition ( 1.. 2)\n");
+	printf("  - term:      termination condition (1 .. 2)\n");
 	printf("                 %1d: sufficient accuracy\n", TERM_ACC);
 	printf("                 %1d: number of iterations\n", TERM_ITER);
 	printf("  - acc/iter:  depending on term:\n");
@@ -145,9 +145,9 @@ askParams(struct options* options, int argc, char** argv)
 		exit(1);
 	}
 
-	ret = sscanf(argv[4], "%" SCNu64, &(options->inf_func));
+	ret = sscanf(argv[4], "%" SCNu64, &(options->pert_func));
 
-	if (ret != 1 || !(options->inf_func == FUNC_F0 || options->inf_func == FUNC_FPISIN))
+	if (ret != 1 || !(options->pert_func == FUNC_F0 || options->pert_func == FUNC_FPISIN))
 	{
 		usage(argv[0]);
 		exit(1);
@@ -268,7 +268,7 @@ initMatrices(struct calculation_arguments* arguments, struct options const* opti
 	}
 
 	/* initialize borders, depending on function (function 2: nothing to do) */
-	if (options->inf_func == FUNC_F0)
+	if (options->pert_func == FUNC_F0)
 	{
 		for (g = 0; g < arguments->num_matrices; g++)
 		{
@@ -322,7 +322,7 @@ calculate(struct calculation_arguments const* arguments, struct calculation_resu
 		m2 = 0;
 	}
 
-	if (options->inf_func == FUNC_FPISIN)
+	if (options->pert_func == FUNC_FPISIN)
 	{
 		pih    = M_PI * h;
 		fpisin = 0.25 * (2 * M_PI * M_PI) * h * h;
@@ -337,7 +337,7 @@ calculate(struct calculation_arguments const* arguments, struct calculation_resu
 		{
 			double fpisin_i = 0.0;
 
-			if (options->inf_func == FUNC_FPISIN)
+			if (options->pert_func == FUNC_FPISIN)
 			{
 				fpisin_i = fpisin * sin(pih * (double)i);
 			}
@@ -347,7 +347,7 @@ calculate(struct calculation_arguments const* arguments, struct calculation_resu
 			{
 				star = 0.25 * (Matrix[m2][i - 1][j] + Matrix[m2][i][j - 1] + Matrix[m2][i][j + 1] + Matrix[m2][i + 1][j]);
 
-				if (options->inf_func == FUNC_FPISIN)
+				if (options->pert_func == FUNC_FPISIN)
 				{
 					star += fpisin_i * sin(pih * (double)j);
 				}
@@ -397,9 +397,9 @@ displayStatistics(struct calculation_arguments const* arguments, struct calculat
 	int    N    = arguments->N;
 	double time = (comp_time.tv_sec - start_time.tv_sec) + (comp_time.tv_usec - start_time.tv_usec) * 1e-6;
 
-	printf("Calculation time:   %f s\n", time);
-	printf("Memory usage:       %f MiB\n", (N + 1) * (N + 1) * sizeof(double) * arguments->num_matrices / 1024.0 / 1024.0);
-	printf("Calculation method: ");
+	printf("Calculation time:       %f s\n", time);
+	printf("Memory usage:           %f MiB\n", (N + 1) * (N + 1) * sizeof(double) * arguments->num_matrices / 1024.0 / 1024.0);
+	printf("Calculation method:     ");
 
 	if (options->method == METH_GAUSS_SEIDEL)
 	{
@@ -411,20 +411,20 @@ displayStatistics(struct calculation_arguments const* arguments, struct calculat
 	}
 
 	printf("\n");
-	printf("Interlines:         %" PRIu64 "\n", options->interlines);
-	printf("Inference function: ");
+	printf("Interlines:             %" PRIu64 "\n", options->interlines);
+	printf("Perturbation function:  ");
 
-	if (options->inf_func == FUNC_F0)
+	if (options->pert_func == FUNC_F0)
 	{
 		printf("f(x,y) = 0");
 	}
-	else if (options->inf_func == FUNC_FPISIN)
+	else if (options->pert_func == FUNC_FPISIN)
 	{
 		printf("f(x,y) = 2 * pi^2 * sin(pi * x) * sin(pi * y)");
 	}
 
 	printf("\n");
-	printf("Termination:        ");
+	printf("Termination:            ");
 
 	if (options->termination == TERM_ACC)
 	{
@@ -436,8 +436,8 @@ displayStatistics(struct calculation_arguments const* arguments, struct calculat
 	}
 
 	printf("\n");
-	printf("Number iterations:  %" PRIu64 "\n", results->stat_iteration);
-	printf("Residuum:           %e\n", results->stat_accuracy);
+	printf("Number of iterations:   %" PRIu64 "\n", results->stat_iteration);
+	printf("Residuum:               %e\n", results->stat_accuracy);
 	printf("\n");
 }
 
