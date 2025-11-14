@@ -81,14 +81,14 @@ RE_OUTPUT_MASK_STRICT_2 = re.compile(
 RE_OUTPUT_MASK_STRICT_3 = re.compile(
     rf"""
     ^
-    Calculation\stime:      \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
-    Memory\susage:          \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
-    Calculation\smethod:    \s+ (.+)             \s*\n # Calculation method
-    Interlines:             \s+ ([0-9]+)         \s*\n # Interlines
-    Perturbation\sfunction: \s+ (.+)             \s*\n # Perturbation function
-    Termination:            \s+ (.+)             \s*\n # Termination
-    Number\sof\siterations: \s+ ([0-9]+)         \s*\n # Number of iterations
-    Residuum:               \s+ ([0-9\.e+-]+)    \s*\n # Residuum
+    (.+): \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
+    (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    (.+): \s+ (.+)             \s*\n # Calculation method
+    (.+): \s+ ([0-9]+)         \s*\n # Interlines
+    (.+): \s+ (.+)             \s*\n # Perturbation function
+    (.+): \s+ (.+)             \s*\n # Termination
+    (.+): \s+ ([0-9]+)         \s*\n # Number of iterations
+    (.+): \s+ ([0-9\.e+-]+)    \s*\n # Residuum
     \s*
     Matrix:
     ({RE_MATRIX.pattern})
@@ -98,34 +98,24 @@ RE_OUTPUT_MASK_STRICT_3 = re.compile(
     re.VERBOSE | re.DOTALL,
 )
 
+
 RE_OUTPUT_MASK_STRICT_4 = re.compile(
-    (
-        # fmt: off
-        r"^"
-        r"Calculation time:       [0-9]+\.[0-9]{6} s\n"
-        r"Memory usage:           [0-9]+\.[0-9]{6} MiB\n"
-        r"Calculation method:     (.+)\n"
-        r"Interlines:             ([0-9]+)\n"
-        r"Perturbation function:  (.+)\n"
-        r"Termination:            (.+)\n"
-        r"Number of iterations:   ([0-9]+)\n"
-        r"Residuum:               ([0-9\.e+-]+)\n"
-        r"\n"
-        r"Matrix:\n"
-        r"("
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        r")$"
-        # fmt: on
-    ),
-    re.DOTALL,
+    rf"""
+    ^
+    (.+): (\s+) [0-9\.]+ \s+ s   \s*\n # Calculation time
+    (.+): (\s+) [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    (.+): (\s+) (.+)             \s*\n # Calculation method
+    (.+): (\s+) ([0-9]+)         \s*\n # Interlines
+    (.+): (\s+) (.+)             \s*\n # Perturbation function
+    (.+): (\s+) (.+)             \s*\n # Termination
+    (.+): (\s+) ([0-9]+)         \s*\n # Number of iterations
+    (.+): (\s+) ([0-9\.e+-]+)    \s*\n # Residuum
+    (\s*)
+    Matrix:
+    ({RE_MATRIX.pattern})
+    $
+""",
+    re.VERBOSE | re.DOTALL,
 )
 
 
@@ -177,17 +167,17 @@ RE_OUTPUT_MASK_STRICT_2_ALLOW_EXTRA_ITER = re.compile(
 RE_OUTPUT_MASK_STRICT_3_ALLOW_EXTRA_ITER = re.compile(
     rf"""
     ^
-    Calculation\stime:      \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
-    Memory\susage:          \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
-    Calculation\smethod:    \s+ (.+)             \s*\n # Calculation method
-    Interlines:             \s+ ([0-9]+)         \s*\n # Interlines
-    Perturbation\sfunction: \s+ (.+)             \s*\n # Perturbation function
-    Termination:            \s+ (.+)             \s*\n # Termination
-    Number\sof\siterations: \s+ [0-9]+           \s*\n # Number of iterations
-    Residuum:               \s+ [0-9\.e+-]+      \s*\n # Residuum
+    (.+): \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
+    (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    (.+): \s+ (.+)             \s*\n # Calculation method
+    (.+): \s+ ([0-9]+)         \s*\n # Interlines
+    (.+): \s+ (.+)             \s*\n # Perturbation function
+    (.+): \s+ (.+)             \s*\n # Termination
+    (.+): \s+ [0-9]+           \s*\n # Number of iterations
+    (.+): \s+ [0-9\.e+-]+      \s*\n # Residuum
     \s*
     Matrix:
-    {RE_MATRIX.pattern}
+    ({RE_MATRIX.pattern})
     .*
     $
 """,
@@ -195,32 +185,22 @@ RE_OUTPUT_MASK_STRICT_3_ALLOW_EXTRA_ITER = re.compile(
 )
 
 RE_OUTPUT_MASK_STRICT_4_ALLOW_EXTRA_ITER = re.compile(
-    (
-        # fmt: off
-        r"^"
-        r"Calculation time:       [0-9]+\.[0-9]{6} s\n"
-        r"Memory usage:           [0-9]+\.[0-9]{6} MiB\n"
-        r"Calculation method:     (.+)\n"
-        r"Interlines:             ([0-9]+)\n"
-        r"Perturbation function:  (.+)\n"
-        r"Termination:            (.+)\n"
-        r"Number of iterations:   [0-9]+\n"
-        r"Residuum:               [0-9\.e+-]+\n"
-        r"\n"
-        r"Matrix:\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        r"$"
-        # fmt: on
-    ),
-    re.DOTALL,
+    rf"""
+    ^
+    (.+): (\s+) [0-9\.]+ \s+ s   \s*\n # Calculation time
+    (.+): (\s+) [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    (.+): (\s+) (.+)             \s*\n # Calculation method
+    (.+): (\s+) ([0-9]+)         \s*\n # Interlines
+    (.+): (\s+) (.+)             \s*\n # Perturbation function
+    (.+): (\s+) (.+)             \s*\n # Termination
+    (.+): (\s+) [0-9]+           \s*\n # Number of iterations
+    (.+): (\s+) [0-9\.e+-]+      \s*\n # Residuum
+    (\s*)
+    Matrix:
+    ({RE_MATRIX.pattern})
+    $
+""",
+    re.VERBOSE | re.DOTALL,
 )
 
 
@@ -233,14 +213,14 @@ RE_OUTPUT_MASK_STRICT_2_WITH_EXTRA_ITER = RE_OUTPUT_MASK_STRICT_2
 RE_OUTPUT_MASK_STRICT_3_WITH_EXTRA_ITER = re.compile(
     rf"""
     ^
-    Calculation\stime:      \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
-    Memory\susage:          \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
-    Calculation\smethod:    \s+ (.+)             \s*\n # Calculation method
-    Interlines:             \s+ ([0-9]+)         \s*\n # Interlines
-    Perturbation\sfunction: \s+ (.+)             \s*\n # Perturbation function
-    Termination:            \s+ .+               \s*\n # Termination
-    Number\sof\siterations: \s+ ([0-9]+)         \s*\n # Number of iterations
-    Residuum:               \s+ ([0-9\.e+-]+)    \s*\n # Residuum
+    (.+): \s+ [0-9\.]+ \s+ s   \s*\n # Calculation time
+    (.+): \s+ [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    (.+): \s+ (.+)             \s*\n # Calculation method
+    (.+): \s+ ([0-9]+)         \s*\n # Interlines
+    (.+): \s+ (.+)             \s*\n # Perturbation function
+    (.+): \s+ .+               \s*\n # Termination
+    (.+): \s+ ([0-9]+)         \s*\n # Number of iterations
+    (.+): \s+ ([0-9\.e+-]+)    \s*\n # Residuum
     \s*
     Matrix:
     ({RE_MATRIX.pattern})
@@ -251,33 +231,22 @@ RE_OUTPUT_MASK_STRICT_3_WITH_EXTRA_ITER = re.compile(
 )
 
 RE_OUTPUT_MASK_STRICT_4_WITH_EXTRA_ITER = re.compile(
-    (
-        # fmt: off
-        r"^"
-        r"Calculation time:       [0-9]+\.[0-9]{6} s\n"
-        r"Memory usage:           [0-9]+\.[0-9]{6} MiB\n"
-        r"Calculation method:     (.+)\n"
-        r"Interlines:             ([0-9]+)\n"
-        r"Perturbation function:  (.+)\n"
-        r"Termination:            .+\n"
-        r"Number of iterations:   ([0-9]+)\n"
-        r"Residuum:               ([0-9\.e+-]+)\n"
-        r"\n"
-        r"Matrix:\n"
-        r"("
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        rf" {F} {F} {F} {F} {F} {F} {F} {F} {F}\n"
-        r")$"
-        # fmt: on
-    ),
-    re.DOTALL,
+    rf"""
+    ^
+    (.+): (\s+) [0-9\.]+ \s+ s   \s*\n # Calculation time
+    (.+): (\s+) [0-9\.]+ \s+ MiB \s*\n # Memory usage
+    (.+): (\s+) (.+)             \s*\n # Calculation method
+    (.+): (\s+) ([0-9]+)         \s*\n # Interlines
+    (.+): (\s+) (.+)             \s*\n # Perturbation function
+    (.+): (\s+) .+               \s*\n # Termination
+    (.+): (\s+) ([0-9]+)         \s*\n # Number of iterations
+    (.+): (\s+) ([0-9\.e+-]+)    \s*\n # Residuum
+    (\s*)
+    Matrix:
+    ({RE_MATRIX.pattern})
+    $
+""",
+    re.VERBOSE | re.DOTALL,
 )
 
 
@@ -296,29 +265,29 @@ RE_OUTPUT_MASK_FOR_ITERATIONS = re.compile(
     re.VERBOSE | re.DOTALL,
 )
 
-OUTPUT_MASKS = [
+OUTPUT_MASKS = (
     RE_OUTPUT_MASK_STRICT_0,
     RE_OUTPUT_MASK_STRICT_1,
     RE_OUTPUT_MASK_STRICT_2,
     RE_OUTPUT_MASK_STRICT_3,
     RE_OUTPUT_MASK_STRICT_4,
-]
+)
 
-OUTPUT_MASKS_ALLOW_EXTRA_ITER = [
+OUTPUT_MASKS_ALLOW_EXTRA_ITER = (
     RE_OUTPUT_MASK_STRICT_0_ALLOW_EXTRA_ITER,
     RE_OUTPUT_MASK_STRICT_1_ALLOW_EXTRA_ITER,
     RE_OUTPUT_MASK_STRICT_2_ALLOW_EXTRA_ITER,
     RE_OUTPUT_MASK_STRICT_3_ALLOW_EXTRA_ITER,
     RE_OUTPUT_MASK_STRICT_4_ALLOW_EXTRA_ITER,
-]
+)
 
-OUTPUT_MASKS_WITH_EXTRA_ITER = [
+OUTPUT_MASKS_WITH_EXTRA_ITER = (
     RE_OUTPUT_MASK_STRICT_0_WITH_EXTRA_ITER,
     RE_OUTPUT_MASK_STRICT_1_WITH_EXTRA_ITER,
     RE_OUTPUT_MASK_STRICT_2_WITH_EXTRA_ITER,
     RE_OUTPUT_MASK_STRICT_3_WITH_EXTRA_ITER,
     RE_OUTPUT_MASK_STRICT_4_WITH_EXTRA_ITER,
-]
+)
 
 assert len(OUTPUT_MASKS) == NUM_OUTPUT_MASKS
 assert len(OUTPUT_MASKS_ALLOW_EXTRA_ITER) == NUM_OUTPUT_MASKS
